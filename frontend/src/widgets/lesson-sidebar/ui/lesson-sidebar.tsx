@@ -111,9 +111,9 @@ export function LessonSidebar() {
                 <ol className="mt-0.5 ml-6 space-y-0.5 border-l pl-2">
                   {sections.map((section) => {
                     const sectionCurrent =
-                      onLessonPage && section.id === activeId;
+                      active && onLessonPage && section.id === activeId;
                     return (
-                      <li key={section.id}>
+                      <li key={`${lesson.slug}:${section.id}`}>
                         <HeadingLink
                           text={section.text}
                           current={sectionCurrent}
@@ -127,11 +127,13 @@ export function LessonSidebar() {
                         {section.children.length > 0 ? (
                           <ol className="mt-0.5 space-y-0.5 pl-3">
                             {section.children.map((child) => (
-                              <li key={child.id}>
+                              <li key={`${lesson.slug}:${child.id}`}>
                                 <HeadingLink
                                   text={child.text}
                                   current={
-                                    onLessonPage && child.id === activeId
+                                    active &&
+                                    onLessonPage &&
+                                    child.id === activeId
                                   }
                                   href={headingHref(
                                     active && onLessonPage,

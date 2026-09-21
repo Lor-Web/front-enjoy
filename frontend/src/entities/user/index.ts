@@ -1,10 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  mentorsQueryOptions,
-  meQueryOptions,
   profileQueryOptions,
+  type UsersListParams,
+  usersQueryOptions,
 } from "./api/user-queries";
 
+export {
+  meQueryOptions,
+  profileQueryOptions,
+  type UsersListParams,
+  type UsersListResponse,
+  usersQueryOptions,
+} from "./api/user-queries";
 export { CONTACT_FIELDS, contactError } from "./lib/contacts";
 export {
   GRADE_OPTIONS,
@@ -35,10 +42,9 @@ export { ContactLinks } from "./ui/contact-links";
 export { GradeBadge } from "./ui/grade-badge";
 export { ProfileFacts } from "./ui/profile-facts";
 export { RatingLabel } from "./ui/rating-label";
-export { mentorsQueryOptions, meQueryOptions, profileQueryOptions };
 
-export function useMentors() {
-  return useQuery(mentorsQueryOptions);
+export function useUsers(params: UsersListParams) {
+  return useQuery(usersQueryOptions(params));
 }
 
 export function useProfile(slug: string) {

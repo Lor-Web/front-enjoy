@@ -39,7 +39,7 @@ export function HomePage() {
             <Link to={routes.catalog}>Каталог трека</Link>
           </Button>
           <Button asChild variant="ghost">
-            <Link to={routes.mentors}>Найти ментора</Link>
+            <Link to={routes.users}>Пользователи</Link>
           </Button>
         </div>
 

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/lib/utils";
+import { BackToTop } from "@/widgets/back-to-top";
 import { Header } from "@/widgets/header";
 
 type AppShellProps = {
@@ -34,6 +35,7 @@ export function AppShell({ children, sidebar, footer }: AppShellProps) {
           {children}
         </main>
       </div>
+      <BackToTop raised={Boolean(footer)} />
       {footer ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30">
           <div className="mx-auto flex max-w-6xl">

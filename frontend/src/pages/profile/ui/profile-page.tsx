@@ -30,7 +30,7 @@ export function ProfilePage() {
       <AppShell>
         <p>Профиль не найден.</p>
         <Button asChild variant="link" className="px-0">
-          <Link to={routes.mentors}>К каталогу менторов</Link>
+          <Link to={routes.users}>К списку пользователей</Link>
         </Button>
       </AppShell>
     );

@@ -64,14 +64,15 @@ export function Header({ mobileNav }: HeaderProps) {
             Трек React
           </NavLink>
           <NavLink
-            to={routes.mentors}
+            to={routes.users}
+            end
             className={({ isActive }) =>
               isActive
                 ? "bg-accent text-foreground rounded-md px-2 py-1"
                 : "text-muted-foreground hover:bg-accent/70 hover:text-foreground rounded-md px-2 py-1 transition-colors"
             }
           >
-            Менторы
+            Пользователи
           </NavLink>
         </nav>
 

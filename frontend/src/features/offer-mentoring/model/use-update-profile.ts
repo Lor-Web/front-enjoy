@@ -32,7 +32,7 @@ export function useUpdateProfile() {
     },
     onSuccess: (user) => {
       queryClient.setQueryData(["auth", "me"], user);
-      void queryClient.invalidateQueries({ queryKey: ["mentors"] });
+      void queryClient.invalidateQueries({ queryKey: ["users"] });
       void queryClient.invalidateQueries({ queryKey: ["profile", user.slug] });
       toastSuccess("Профиль сохранён");
     },

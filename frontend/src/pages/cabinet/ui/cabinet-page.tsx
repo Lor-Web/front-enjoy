@@ -180,7 +180,7 @@ export function CabinetPage() {
             <p className="text-muted-foreground text-sm">
               Пока нет менторов. Загляните в{" "}
               <Link
-                to={routes.mentors}
+                to={routes.users}
                 className="text-primary underline-offset-4 transition-colors hover:underline"
               >
                 каталог

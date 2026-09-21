@@ -8,6 +8,7 @@ import {
   countWords,
   estimateLessonMinutes,
 } from "../src/shared/lib/reading-time.ts";
+import { lessonSlugFromPath, prefixedHeadingId } from "./heading-id.ts";
 
 export type ExportedHeading = {
   id: string;
@@ -19,6 +20,8 @@ export function remarkExportHeadings() {
   return (tree: Root, file: Parameters<typeof define>[1]) => {
     const slugger = new GithubSlugger();
     const headings: ExportedHeading[] = [];
+    const lessonSlug = lessonSlugFromPath(file.path ?? file.history?.[0]);
+    Object.assign(file.data, { lessonSlug });
     let words = 0;
     let codeBlocks = 0;
 
@@ -28,7 +31,7 @@ export function remarkExportHeadings() {
       }
       const text = mdastToString(node).trim();
       headings.push({
-        id: slugger.slug(text),
+        id: prefixedHeadingId(lessonSlug, slugger.slug(text)),
         text,
         depth: node.depth,
       });

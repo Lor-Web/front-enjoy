@@ -26,7 +26,7 @@ export function useRateUser() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["mentorships"] });
       void queryClient.invalidateQueries({ queryKey: ["profile"] });
-      void queryClient.invalidateQueries({ queryKey: ["mentors"] });
+      void queryClient.invalidateQueries({ queryKey: ["users"] });
       void queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       toastSuccess("Оценка сохранена");
     },

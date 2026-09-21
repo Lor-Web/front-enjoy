@@ -8,6 +8,7 @@ import rehypeSlug from "rehype-slug";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
 import { defineConfig } from "vite";
+import { rehypePrefixHeadingIds } from "./vite/rehype-prefix-heading-ids.ts";
 import { remarkExportHeadings } from "./vite/remark-export-headings.ts";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
@@ -24,6 +25,7 @@ export default defineConfig({
         ],
         rehypePlugins: [
           rehypeSlug,
+          rehypePrefixHeadingIds,
           [
             rehypePrettyCode,
             {

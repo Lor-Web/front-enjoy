@@ -6,6 +6,7 @@ import {
 import { PrismaService } from "../prisma/prisma.service";
 import { mergeContacts, parseContacts } from "./contacts";
 import { emptyToNull, isGrade } from "./details";
+import { ListUsersQueryDto } from "./dto/list-users-query.dto";
 import { UpdateProfileDto } from "./dto/update-profile.dto";
 import { toMeProfile, toPublicProfile } from "./profile";
 import { mergeVisibility, parseVisibility } from "./visibility";
@@ -22,12 +23,41 @@ export class UsersService {
     return toPublicProfile(this.prisma, user);
   }
 
-  async listMentors() {
+  async list(query: ListUsersQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 12;
+    const q = query.q?.trim() ?? "";
+    const where = {
+      ...(query.mentors ? { mentorOffered: true } : {}),
+      ...(query.grade ? { grade: query.grade } : {}),
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" as const } },
+              { city: { contains: q, mode: "insensitive" as const } },
+              { country: { contains: q, mode: "insensitive" as const } },
+            ],
+          }
+        : {}),
+    };
+    const total = await this.prisma.user.count({ where });
+    const pages = Math.max(1, Math.ceil(total / limit) || 1);
+    const safePage = Math.min(page, pages);
     const users = await this.prisma.user.findMany({
-      where: { mentorOffered: true },
+      where,
       orderBy: { name: "asc" },
+      skip: (safePage - 1) * limit,
+      take: limit,
     });
-    return Promise.all(users.map((user) => toPublicProfile(this.prisma, user)));
+    return {
+      items: await Promise.all(
+        users.map((user) => toPublicProfile(this.prisma, user)),
+      ),
+      total,
+      page: safePage,
+      limit,
+      pages,
+    };
   }
 
   async updateMe(userId: string, dto: UpdateProfileDto) {
