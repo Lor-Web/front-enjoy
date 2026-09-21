@@ -24,4 +24,11 @@ export const routes = {
     hash: options?.hash ? `#${options.hash}` : "",
   }),
   quiz: (slug: string) => `/learn/react/${slug}/quiz`,
+  login: "/login",
+  signup: "/signup",
+  mentors: "/mentors",
+  profile: (slug: string) => `/u/${slug}`,
+  me: "/me",
+  cabinet: "/cabinet",
+  studentProgress: (id: string) => `/cabinet/students/${id}`,
 } as const;

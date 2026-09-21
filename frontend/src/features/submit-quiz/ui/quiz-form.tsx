@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { Quiz } from "@/entities/quiz";
 import { Button } from "@/shared/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
-import { usePassQuiz } from "../model/use-pass-quiz";
+import { useSubmitQuiz } from "../model/use-pass-quiz";
 
 type QuizFormProps = {
   quiz: Quiz;
@@ -10,7 +10,7 @@ type QuizFormProps = {
 };
 
 export function QuizForm({ quiz, onPassed }: QuizFormProps) {
-  const passQuiz = usePassQuiz();
+  const submitQuiz = useSubmitQuiz();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
@@ -40,8 +40,8 @@ export function QuizForm({ quiz, onPassed }: QuizFormProps) {
     const passed = quiz.questions.every(
       (question) => answers[question.id] === question.correctOptionId,
     );
+    submitQuiz(quiz.slug, passed);
     if (passed) {
-      passQuiz(quiz.slug);
       onPassed?.();
     }
   };

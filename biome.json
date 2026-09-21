@@ -12,6 +12,8 @@
       "!**/dist",
       "!**/node_modules",
       "!backend/src/.gitkeep",
+      "!**/generated",
+      "!**/prisma/migrations",
       "!.husky"
     ]
   },
@@ -26,7 +28,22 @@
       "preset": "recommended"
     }
   },
+  "overrides": [
+    {
+      "includes": ["backend/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "off"
+          }
+        }
+      }
+    }
+  ],
   "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
     "formatter": {
       "quoteStyle": "double",
       "semicolons": "always",

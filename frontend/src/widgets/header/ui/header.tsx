@@ -1,6 +1,7 @@
 import { Menu } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, NavLink } from "react-router";
+import { AuthMenu } from "@/features/auth";
 import { ThemeToggle } from "@/features/toggle-theme";
 import { routes } from "@/shared/config/routes";
 import { Button } from "@/shared/ui/button";
@@ -51,7 +52,7 @@ export function Header({ mobileNav }: HeaderProps) {
           Front Enjoy
         </Link>
 
-        <nav className="ml-2 hidden items-center gap-4 text-sm sm:flex">
+        <nav className="ml-2 flex min-w-0 items-center gap-3 text-sm">
           <NavLink
             to={routes.catalog}
             className={({ isActive }) =>
@@ -62,9 +63,20 @@ export function Header({ mobileNav }: HeaderProps) {
           >
             Трек React
           </NavLink>
+          <NavLink
+            to={routes.mentors}
+            className={({ isActive }) =>
+              isActive
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }
+          >
+            Менторы
+          </NavLink>
         </nav>
 
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <AuthMenu />
           <ThemeToggle />
         </div>
       </div>

@@ -1,7 +1,12 @@
 # Backend
 
-Здесь будет NestJS API.
+NestJS API: аккаунты, профили, менторство, облачный прогресс.
 
-Пока не поднимаем: уроки и квизы статичны, прогресс живёт в браузере. Пакет появится в этой папке, когда понадобятся профили, облачный прогресс или авторский контент.
+```bash
+docker compose -f backend/docker-compose.yml up -d
+cp backend/.env.example backend/.env
+pnpm --filter @front-enjoy/backend prisma:migrate
+pnpm --filter @front-enjoy/backend dev
+```
 
-Планируемый стек: NestJS, PostgreSQL, Axios на фронте (`VITE_API_URL`).
+API: `http://localhost:3001`. Фронт: `VITE_API_URL`.

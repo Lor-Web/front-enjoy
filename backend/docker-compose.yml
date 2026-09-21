@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: front_enjoy
+      POSTGRES_PASSWORD: front_enjoy
+      POSTGRES_DB: front_enjoy
+    ports:
+      - "5432:5432"
+    volumes:
+      - front_enjoy_pg:/var/lib/postgresql/data
+
+volumes:
+  front_enjoy_pg:

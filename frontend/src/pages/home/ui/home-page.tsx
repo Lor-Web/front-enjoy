@@ -26,7 +26,8 @@ export function HomePage() {
         <h1 className="mb-5 text-4xl leading-tight sm:text-5xl">Front Enjoy</h1>
         <p className="text-muted-foreground mb-8 text-[17px] leading-7">
           Короткие текстовые уроки и мини-квизы. Сейчас открыт трек React:
-          компоненты и JSX. Без аккаунта — прогресс хранится в браузере.
+          компоненты и JSX. Читать можно без аккаунта; вход — чтобы найти
+          ментора или принимать учеников.
         </p>
         <div className="flex flex-wrap gap-3">
           {first ? (
@@ -36,6 +37,9 @@ export function HomePage() {
           ) : null}
           <Button asChild variant="outline">
             <Link to={routes.catalog}>Каталог трека</Link>
+          </Button>
+          <Button asChild variant="ghost">
+            <Link to={routes.mentors}>Найти ментора</Link>
           </Button>
         </div>
 

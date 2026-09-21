@@ -1,5 +1,9 @@
 /// <reference types="vite/client" />
 
+interface ImportMetaEnv {
+  readonly VITE_API_URL?: string;
+}
+
 declare module "*.mdx" {
   import type { ComponentType } from "react";
 

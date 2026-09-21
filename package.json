@@ -5,6 +5,7 @@
   "packageManager": "pnpm@10.15.0",
   "scripts": {
     "dev": "pnpm --filter @front-enjoy/frontend dev",
+    "dev:backend": "pnpm --filter @front-enjoy/backend dev",
     "build": "pnpm --filter @front-enjoy/frontend build",
     "preview": "pnpm --filter @front-enjoy/frontend preview",
     "lint": "biome check .",

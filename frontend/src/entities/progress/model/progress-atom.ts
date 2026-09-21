@@ -1,10 +1,15 @@
-import { atomWithStorage } from "jotai/utils";
-import { emptyProgress, type ProgressState } from "./types";
+import { atomWithStorage, createJSONStorage } from "jotai/utils";
+import { emptyProgress, normalizeProgress, type ProgressState } from "./types";
+
+const storage = createJSONStorage<ProgressState>(() => localStorage);
 
 export const progressAtom = atomWithStorage<ProgressState>(
   "fe-progress",
   emptyProgress,
-  undefined,
+  {
+    ...storage,
+    getItem: (key, initial) => normalizeProgress(storage.getItem(key, initial)),
+  },
   { getOnInit: true },
 );
 
@@ -27,4 +32,20 @@ export function trackProgressPercent(
     (slug) => isLessonRead(progress, slug) || isQuizPassed(progress, slug),
   ).length;
   return Math.round((done / lessonSlugs.length) * 100);
+}
+
+export function courseProgressPercent(
+  progress: Pick<ProgressState, "readLessonIds" | "passedQuizIds">,
+  lessons: Array<{ slug: string; quizSlug: string }>,
+) {
+  if (lessons.length === 0) {
+    return 0;
+  }
+  const total = lessons.length * 2;
+  const done = lessons.reduce((sum, lesson) => {
+    const read = progress.readLessonIds.includes(lesson.slug) ? 1 : 0;
+    const passed = progress.passedQuizIds.includes(lesson.quizSlug) ? 1 : 0;
+    return sum + read + passed;
+  }, 0);
+  return Math.round((done / total) * 100);
 }

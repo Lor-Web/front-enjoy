@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  slug          String   @unique
+  contacts      Json     @default("{}")
+  mentorOffered Boolean  @default(false)
+  mentorBio     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  lessonReads          LessonRead[]
+  quizProgress         QuizProgress[]
+  mentorshipsAsMentor  Mentorship[]   @relation("Mentor")
+  mentorshipsAsStudent Mentorship[]   @relation("Student")
+  ratingsGiven         Rating[]       @relation("RatingFrom")
+  ratingsReceived      Rating[]       @relation("RatingTo")
+}
+
+model LessonRead {
+  userId String
+  slug   String
+  readAt DateTime @default(now())
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, slug])
+}
+
+model QuizProgress {
+  userId   String
+  slug     String
+  passed   Boolean   @default(false)
+  attempts Int       @default(0)
+  passedAt DateTime?
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, slug])
+}
+
+enum MentorshipStatus {
+  pending
+  active
+  declined
+  ended
+}
+
+model Mentorship {
+  id        String           @id @default(cuid())
+  mentorId  String
+  studentId String
+  status    MentorshipStatus
+  startedAt DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  mentor    User             @relation("Mentor", fields: [mentorId], references: [id], onDelete: Cascade)
+  student   User             @relation("Student", fields: [studentId], references: [id], onDelete: Cascade)
+  ratings   Rating[]
+
+  @@unique([mentorId, studentId])
+}
+
+enum RatingAspect {
+  asMentor
+  asStudent
+}
+
+model Rating {
+  id           String       @id @default(cuid())
+  mentorshipId String
+  fromUserId   String
+  toUserId     String
+  aspect       RatingAspect
+  score        Int
+  comment      String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  mentorship   Mentorship   @relation(fields: [mentorshipId], references: [id], onDelete: Cascade)
+  fromUser     User         @relation("RatingFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser       User         @relation("RatingTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@unique([mentorshipId, fromUserId, aspect])
+}
