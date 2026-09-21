@@ -42,16 +42,14 @@ export function QuizPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           {lesson ? (
             <Button asChild variant="ghost" className="justify-start">
-              <Link to={routes.lesson(lesson.slug)}>← {lesson.title}</Link>
+              <Link to={routes.toLesson(lesson.slug)}>← {lesson.title}</Link>
             </Button>
           ) : (
             <span />
           )}
           {next ? (
             <Button asChild>
-              <Link to={{ pathname: routes.lesson(next.slug), hash: "" }}>
-                Следующий урок
-              </Link>
+              <Link to={routes.toLesson(next.slug)}>Следующий урок</Link>
             </Button>
           ) : (
             <Button asChild variant="outline">

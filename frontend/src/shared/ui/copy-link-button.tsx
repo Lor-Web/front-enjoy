@@ -1,5 +1,5 @@
 import { Check, Link2 } from "lucide-react";
-import { useState } from "react";
+import { useCopied } from "@/shared/lib/use-copied";
 import { cn } from "@/shared/lib/utils";
 
 type CopyLinkButtonProps = {
@@ -8,14 +8,13 @@ type CopyLinkButtonProps = {
 };
 
 export function CopyLinkButton({ hash, className }: CopyLinkButtonProps) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useCopied();
 
   const copy = async () => {
     const url = new URL(window.location.href);
     url.hash = hash ?? "";
     await navigator.clipboard.writeText(url.toString());
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 1500);
   };
 
   return (

@@ -1,6 +1,10 @@
 import { useEffect, useLayoutEffect } from "react";
 import { Link, useLocation, useParams } from "react-router";
-import { getNeighborLessons, useLesson } from "@/entities/lesson";
+import {
+  getLessonVariant,
+  getNeighborLessons,
+  useLesson,
+} from "@/entities/lesson";
 import { useCompleteLesson } from "@/features/complete-lesson";
 import { useLessonView } from "@/features/select-lesson-view";
 import { routes } from "@/shared/config/routes";
@@ -23,9 +27,10 @@ export function LessonPage() {
     }
   }, [completeLesson, lesson]);
 
+  const variant = lesson ? getLessonVariant(lesson, view) : undefined;
+
   useLayoutEffect(() => {
-    void view;
-    if (!lesson || !location.hash) {
+    if (!variant || !location.hash) {
       return;
     }
     if (scrollToHash(location.hash)) {
@@ -35,7 +40,7 @@ export function LessonPage() {
       scrollToHash(location.hash);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [lesson, location.hash, view]);
+  }, [variant, location.hash]);
 
   if (isPending) {
     return (
@@ -65,7 +70,7 @@ export function LessonPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           {prev ? (
             <Button asChild variant="ghost" className="justify-start">
-              <Link to={lessonHref(prev.slug)}>← {prev.title}</Link>
+              <Link to={routes.toLesson(prev.slug)}>← {prev.title}</Link>
             </Button>
           ) : (
             <span />
@@ -76,7 +81,7 @@ export function LessonPage() {
             </Button>
             {next ? (
               <Button asChild>
-                <Link to={lessonHref(next.slug)}>Дальше</Link>
+                <Link to={routes.toLesson(next.slug)}>Дальше</Link>
               </Button>
             ) : null}
           </div>
@@ -86,8 +91,4 @@ export function LessonPage() {
       <LessonArticle lesson={lesson} view={view} />
     </AppShell>
   );
-}
-
-function lessonHref(slug: string) {
-  return { pathname: routes.lesson(slug), hash: "" };
 }

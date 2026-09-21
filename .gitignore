@@ -1,7 +1,27 @@
+# dependencies
 node_modules
+
+# build
 dist
-.DS_Store
-*.local
-.netlify
+*.tsbuildinfo
 .vite
-node_modules/.tmp
+.netlify
+
+# env & secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# logs & tests
+*.log
+coverage
+
+# OS
+.DS_Store
+
+# editors
+.idea
+
+# Cursor
+.cursor

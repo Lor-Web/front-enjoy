@@ -41,7 +41,13 @@ function viewFromPath(
   return { slug: match[1], view: viewName };
 }
 
+let lessonsCache: Lesson[] | undefined;
+
 export function loadLessons(): Lesson[] {
+  if (lessonsCache) {
+    return lessonsCache;
+  }
+
   const bySlug = new Map<string, Lesson>();
 
   for (const [filePath, mod] of Object.entries(metaModules)) {
@@ -74,7 +80,7 @@ export function loadLessons(): Lesson[] {
     };
   }
 
-  return [...bySlug.values()]
+  lessonsCache = [...bySlug.values()]
     .filter((lesson) => lesson.variants.short)
     .map((lesson) => ({
       ...lesson,
@@ -83,6 +89,8 @@ export function loadLessons(): Lesson[] {
         .map((heading) => ({ id: heading.id, title: heading.text })),
     }))
     .sort((a, b) => a.order - b.order);
+
+  return lessonsCache;
 }
 
 export function loadLesson(slug: string): Lesson | undefined {

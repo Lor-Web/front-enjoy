@@ -5,8 +5,8 @@ import {
   isValidElement,
   type ReactNode,
   useRef,
-  useState,
 } from "react";
+import { useCopied } from "@/shared/lib/use-copied";
 import { cn } from "@/shared/lib/utils";
 
 // Подсветка — rehype-pretty-code + shiki на сборке. Здесь только рамка: язык и копирование.
@@ -31,7 +31,7 @@ type CodeBlockProps = ComponentProps<"pre"> & {
 
 export function CodeBlock({ children, className, ...props }: CodeBlockProps) {
   const preRef = useRef<HTMLPreElement>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useCopied();
   const language =
     (typeof props["data-language"] === "string" && props["data-language"]) ||
     languageFromChildren(children);
@@ -43,7 +43,6 @@ export function CodeBlock({ children, className, ...props }: CodeBlockProps) {
     const text = preRef.current?.textContent ?? "";
     await navigator.clipboard.writeText(text);
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 1500);
   };
 
   return (

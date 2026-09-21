@@ -8,11 +8,19 @@ const modules = import.meta.glob<{ default: QuizFile }>(
   { eager: true },
 );
 
+let quizzesCache: Quiz[] | undefined;
+
 export function loadQuizzes(): Quiz[] {
-  return Object.values(modules).map((mod) => ({
+  if (quizzesCache) {
+    return quizzesCache;
+  }
+
+  quizzesCache = Object.values(modules).map((mod) => ({
     ...mod.default,
     readingMinutes: estimateQuizMinutes(mod.default.questions.length),
   }));
+
+  return quizzesCache;
 }
 
 export function loadQuiz(slug: string): Quiz | undefined {

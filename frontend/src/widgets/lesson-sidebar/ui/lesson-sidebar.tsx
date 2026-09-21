@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue } from "jotai";
 import { ChevronRight } from "lucide-react";
 import { Link, useLocation } from "react-router";
-import { useLessons } from "@/entities/lesson";
+import { getLessonVariant, useLessons } from "@/entities/lesson";
 import { isLessonRead, isQuizPassed, progressAtom } from "@/entities/progress";
 import { useLessonView } from "@/features/select-lesson-view";
 import { routes } from "@/shared/config/routes";
@@ -28,9 +28,9 @@ export function LessonSidebar() {
     location.pathname === routes.lesson(activeLesson.slug);
 
   const activeHeadings =
-    (onLessonPage
-      ? (activeLesson.variants[view] ?? activeLesson.variants.short)?.headings
-      : undefined) ?? [];
+    activeLesson && onLessonPage
+      ? getLessonVariant(activeLesson, view).headings
+      : [];
   const activeId = useActiveHeading(
     activeHeadings.map((heading) => heading.id),
   );
@@ -42,7 +42,6 @@ export function LessonSidebar() {
       </p>
       <ol className="space-y-1">
         {lessons.map((lesson, index) => {
-          const href = routes.lesson(lesson.slug);
           const active = activeLesson?.slug === lesson.slug;
           const read = isLessonRead(progress, lesson.slug);
           const passed = isQuizPassed(progress, lesson.quizSlug);
@@ -87,7 +86,7 @@ export function LessonSidebar() {
                   <span className="size-6 shrink-0" />
                 )}
                 <Link
-                  to={{ pathname: href, hash: "" }}
+                  to={routes.toLesson(lesson.slug)}
                   className={cn(
                     "min-w-0 flex-1 rounded-md px-1.5 py-1.5 text-sm leading-5",
                     active
