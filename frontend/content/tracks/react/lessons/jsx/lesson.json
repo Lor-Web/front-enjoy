@@ -1,0 +1,8 @@
+{
+  "slug": "jsx",
+  "title": "JSX",
+  "order": 2,
+  "sourceUrl": "https://react.dev/learn/writing-markup-with-jsx",
+  "sourceLicense": "CC-BY-4.0",
+  "quizSlug": "jsx"
+}

@@ -1,0 +1,60 @@
+{
+  "slug": "jsx",
+  "lessonSlug": "jsx",
+  "title": "Квиз: JSX",
+  "questions": [
+    {
+      "id": "q1",
+      "prompt": "Чем JSX является по сути?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Строкой HTML, которую React вставляет через innerHTML"
+        },
+        {
+          "id": "b",
+          "text": "Расширением JavaScript, которое компилируется в вызовы React"
+        },
+        { "id": "c", "text": "Отдельным языком шаблонов, как Handlebars" }
+      ],
+      "correctOptionId": "b",
+      "explanation": "JSX — синтаксис JS. Сборщик превращает его в обычные вызовы функций."
+    },
+    {
+      "id": "q2",
+      "prompt": "Как вставить значение переменной в JSX?",
+      "options": [
+        { "id": "a", "text": "Фигурными скобками: {count}" },
+        { "id": "b", "text": "Двойными кавычками: \"count\"" },
+        { "id": "c", "text": "Директивой {{ count }}" }
+      ],
+      "correctOptionId": "a",
+      "explanation": "В `{ }` можно поставить любое JS-выражение."
+    },
+    {
+      "id": "q3",
+      "prompt": "Что делать, если компонент возвращает два соседних элемента?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Обернуть их во фрагмент <>...</> или в один тег"
+        },
+        { "id": "b", "text": "Вернуть массив строк с HTML" },
+        { "id": "c", "text": "Ничего: JSX всегда разрешает несколько корней" }
+      ],
+      "correctOptionId": "a",
+      "explanation": "У return должен быть один корень: тег или фрагмент."
+    },
+    {
+      "id": "q4",
+      "prompt": "Как в JSX задают CSS-класс?",
+      "options": [
+        { "id": "a", "text": "class, как в HTML" },
+        { "id": "b", "text": "className, в camelCase" },
+        { "id": "c", "text": "cssClass" }
+      ],
+      "correctOptionId": "b",
+      "explanation": "`class` — зарезервированное слово JS, поэтому в JSX пишут className."
+    }
+  ]
+}

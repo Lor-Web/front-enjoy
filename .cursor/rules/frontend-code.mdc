@@ -1,0 +1,29 @@
+---
+description: React/TS practices, Query vs Jotai, KISS/DRY
+globs: frontend/src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Код фронтенда
+
+KISS и DRY: без абстракций «на будущее», без Axios до появления API.
+
+## Состояние
+
+- **TanStack Query** — уроки и квизы (`queryKey`: `['lessons']`, `['lesson', slug]`, `['quiz', slug]`). Потом меняется только `queryFn`.
+- **Jotai** — клиентское: прогресс, тема, вид урока (`short` / `detailed` / `practices`), раскрытие разделов в дереве, оценки материалов. Не класть контент уроков в атомы.
+
+## React / TS
+
+- Функциональные компоненты, пропсы типизировать явно
+- Хуки — в `model/` слайса, UI не ходит в localStorage и glob напрямую
+- Не дублировать разбор MDX/JSON вне `entities/`
+
+```ts
+// ❌ BAD: страница читает glob и пишет localStorage
+// ✅ GOOD: pages → features/entities хуки
+const lesson = useLesson(slug);
+const { complete } = useCompleteLesson();
+```
+
+Сложный модуль — `README.md` в слайсе: зачем он, вход, выход, что не менять.

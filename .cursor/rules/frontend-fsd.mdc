@@ -1,0 +1,35 @@
+---
+description: Feature-Sliced Design layers, public API, and import rules
+globs: frontend/src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# FSD
+
+Слои (сверху вниз): `app` → `pages` → `widgets` → `features` → `entities` → `shared`.
+
+Импорт только из нижележащих слоёв. Слайс не импортирует соседний слайс того же слоя — выноси общее ниже.
+
+```
+frontend/src/
+  app/        # провайдеры, роутер, глобальные стили
+  pages/      # home, catalog, lesson, quiz
+  widgets/    # header, lesson-sidebar, lesson-article
+  features/   # complete-lesson, submit-quiz, toggle-theme, select-lesson-view, rate-content
+  entities/   # lesson, quiz, progress
+  shared/     # ui, lib, config, routes
+```
+
+У каждого слайса — `index.ts` как public API. Снаружи импортировать только его.
+
+```ts
+// ❌ BAD
+import { LessonMeta } from "@/entities/lesson/model/types";
+
+// ✅ GOOD
+import { LessonMeta } from "@/entities/lesson";
+```
+
+Контент (`frontend/content/`) — не слой FSD. Доступ к нему только через `entities/lesson` и `entities/quiz`.
+
+Сложный слайс — короткий `README.md` в корне слайса.
