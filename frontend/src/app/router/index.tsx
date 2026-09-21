@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { RequireAuth } from "@/features/auth";
 import { CabinetPage, StudentProgressPage } from "@/pages/cabinet";
 import { CatalogPage } from "@/pages/catalog";
+import { DocsPage, JavascriptPage } from "@/pages/docs";
 import { HomePage } from "@/pages/home";
 import { LessonPage } from "@/pages/lesson";
 import { LoginPage } from "@/pages/login";
@@ -19,6 +20,9 @@ export function AppRouter() {
       <ScrollOnNavigate />
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/docs" element={<DocsPage />} />
+        <Route path="/docs/react" element={<CatalogPage />} />
+        <Route path="/docs/javascript" element={<JavascriptPage />} />
         <Route path="/learn/react" element={<CatalogPage />} />
         <Route path="/learn/react/:slug" element={<LessonPage />} />
         <Route path="/learn/react/:slug/quiz" element={<QuizPage />} />

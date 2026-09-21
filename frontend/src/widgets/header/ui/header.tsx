@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/shared/ui/sheet";
+import { DocsNav } from "./docs-nav";
 
 type HeaderProps = {
   mobileNav?: ReactNode;
@@ -53,16 +54,7 @@ export function Header({ mobileNav }: HeaderProps) {
         </Link>
 
         <nav className="ml-2 flex min-w-0 items-center gap-3 text-sm">
-          <NavLink
-            to={routes.catalog}
-            className={({ isActive }) =>
-              isActive
-                ? "bg-accent text-foreground rounded-md px-2 py-1"
-                : "text-muted-foreground hover:bg-accent/70 hover:text-foreground rounded-md px-2 py-1 transition-colors"
-            }
-          >
-            Трек React
-          </NavLink>
+          <DocsNav />
           <NavLink
             to={routes.users}
             end
