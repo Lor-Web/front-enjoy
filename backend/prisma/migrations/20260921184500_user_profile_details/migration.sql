@@ -1,0 +1,7 @@
+ALTER TABLE "User" ADD COLUMN "grade" TEXT;
+ALTER TABLE "User" ADD COLUMN "experience" TEXT;
+ALTER TABLE "User" ADD COLUMN "workplace" TEXT;
+ALTER TABLE "User" ADD COLUMN "country" TEXT;
+ALTER TABLE "User" ADD COLUMN "city" TEXT;
+ALTER TABLE "User" ADD COLUMN "otherContacts" TEXT;
+ALTER TABLE "User" ADD COLUMN "visibility" JSONB NOT NULL DEFAULT '{}';

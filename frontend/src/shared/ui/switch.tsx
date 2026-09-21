@@ -20,8 +20,8 @@ function Switch({
       aria-checked={checked}
       disabled={disabled}
       className={cn(
-        "relative h-6 w-10 shrink-0 rounded-full transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
-        checked ? "bg-primary" : "bg-input",
+        "relative h-6 w-10 shrink-0 cursor-pointer rounded-full transition-[background-color,transform,box-shadow] outline-none hover:opacity-90 focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:opacity-50",
+        checked ? "bg-primary" : "bg-input hover:bg-input/80",
         className,
       )}
       onClick={() => onCheckedChange(!checked)}

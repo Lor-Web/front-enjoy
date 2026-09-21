@@ -6,7 +6,7 @@ import {
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcryptjs";
 import { PrismaService } from "../prisma/prisma.service";
-import { toPublicProfile } from "../users/profile";
+import { toMeProfile } from "../users/profile";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { makeSlug } from "./make-slug";
@@ -50,10 +50,7 @@ export class AuthService {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
     });
-    return {
-      ...(await toPublicProfile(this.prisma, user)),
-      email: user.email,
-    };
+    return toMeProfile(this.prisma, user);
   }
 
   private async session(userId: string) {

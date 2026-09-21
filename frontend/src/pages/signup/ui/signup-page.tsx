@@ -1,17 +1,31 @@
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Lock, Mail, User, UserPlus } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
-import { useAuth } from "@/features/auth";
+import { type SignupValues, signupSchema, useAuth } from "@/features/auth";
 import { routes } from "@/shared/config/routes";
 import { Button } from "@/shared/ui/button";
+import { Field, fieldDescribedBy, fieldError } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { AppShell } from "@/widgets/app-shell";
 
 export function SignupPage() {
-  const { register } = useAuth();
+  const { register: signUp } = useAuth();
   const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupValues>({
+    resolver: zodResolver(signupSchema),
+    mode: "onTouched",
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      passwordConfirm: "",
+    },
+  });
 
   return (
     <AppShell>
@@ -23,55 +37,114 @@ export function SignupPage() {
         </p>
         <form
           className="space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            register.mutate(
-              { name, email, password },
+          noValidate
+          onSubmit={handleSubmit((values) => {
+            signUp.mutate(
+              {
+                name: values.name,
+                email: values.email,
+                password: values.password,
+              },
               { onSuccess: () => navigate(routes.me, { replace: true }) },
             );
-          }}
+          })}
         >
-          <label className="block space-y-1 text-sm" htmlFor="signup-name">
-            <span>Имя</span>
+          <Field
+            id="signup-name"
+            label="Имя"
+            required
+            error={fieldError(errors.name)}
+            hint="Как к вам обращаться"
+          >
             <Input
               id="signup-name"
-              required
-              minLength={2}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
+              icon={User}
               autoComplete="name"
+              placeholder="Анна"
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={fieldDescribedBy(
+                "signup-name",
+                fieldError(errors.name),
+                "Как к вам обращаться",
+              )}
+              {...register("name")}
             />
-          </label>
-          <label className="block space-y-1 text-sm" htmlFor="signup-email">
-            <span>Email</span>
+          </Field>
+          <Field
+            id="signup-email"
+            label="Email"
+            required
+            error={fieldError(errors.email)}
+            hint="Нужен для входа"
+          >
             <Input
               id="signup-email"
+              icon={Mail}
               type="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
               autoComplete="email"
+              placeholder="anna@example.com"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={fieldDescribedBy(
+                "signup-email",
+                fieldError(errors.email),
+                "Нужен для входа",
+              )}
+              {...register("email")}
             />
-          </label>
-          <label className="block space-y-1 text-sm" htmlFor="signup-password">
-            <span>Пароль, минимум 8 символов</span>
+          </Field>
+          <Field
+            id="signup-password"
+            label="Пароль"
+            required
+            error={fieldError(errors.password)}
+            hint="Минимум 8 символов"
+          >
             <Input
               id="signup-password"
+              icon={Lock}
               type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
               autoComplete="new-password"
+              placeholder="Минимум 8 символов"
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={fieldDescribedBy(
+                "signup-password",
+                fieldError(errors.password),
+                "Минимум 8 символов",
+              )}
+              {...register("password")}
             />
-          </label>
-          <Button type="submit" disabled={register.isPending}>
+          </Field>
+          <Field
+            id="signup-password-confirm"
+            label="Повторите пароль"
+            required
+            error={fieldError(errors.passwordConfirm)}
+          >
+            <Input
+              id="signup-password-confirm"
+              icon={Lock}
+              type="password"
+              autoComplete="new-password"
+              placeholder="Ещё раз тот же пароль"
+              aria-invalid={Boolean(errors.passwordConfirm)}
+              aria-describedby={fieldDescribedBy(
+                "signup-password-confirm",
+                fieldError(errors.passwordConfirm),
+              )}
+              {...register("passwordConfirm")}
+            />
+          </Field>
+          <Button type="submit" disabled={signUp.isPending}>
+            <UserPlus />
             Создать аккаунт
           </Button>
         </form>
         <p className="text-muted-foreground mt-6 text-sm">
           Уже есть аккаунт?{" "}
-          <Link to={routes.login} className="text-primary hover:underline">
+          <Link
+            to={routes.login}
+            className="text-primary underline-offset-4 transition-colors hover:underline"
+          >
             Войти
           </Link>
         </p>

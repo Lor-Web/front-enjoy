@@ -1,4 +1,10 @@
-export const CONTACT_KEYS = ["telegram", "vk", "discord", "github"] as const;
+export const CONTACT_KEYS = [
+  "telegram",
+  "vk",
+  "discord",
+  "github",
+  "website",
+] as const;
 
 export type ContactKey = (typeof CONTACT_KEYS)[number];
 
@@ -9,6 +15,7 @@ export const emptyContacts: UserContacts = {
   vk: null,
   discord: null,
   github: null,
+  website: null,
 };
 
 const messages: Record<ContactKey, string> = {
@@ -16,6 +23,7 @@ const messages: Record<ContactKey, string> = {
   vk: "Укажите ВКонтакте как ссылку vk.com или короткое имя",
   discord: "Укажите Discord как имя или ссылку-приглашение",
   github: "Укажите GitHub как имя пользователя или ссылку github.com",
+  website: "Укажите сайт как ссылку, например example.com",
 };
 
 export function parseContacts(value: unknown): UserContacts {
@@ -28,6 +36,7 @@ export function parseContacts(value: unknown): UserContacts {
     vk: stringOrNull(raw.vk),
     discord: stringOrNull(raw.discord),
     github: stringOrNull(raw.github),
+    website: stringOrNull(raw.website),
   };
 }
 
@@ -61,7 +70,9 @@ function normalizeContact(key: ContactKey, input: string) {
         ? normalizeVk(trimmed)
         : key === "discord"
           ? normalizeDiscord(trimmed)
-          : normalizeGithub(trimmed);
+          : key === "github"
+            ? normalizeGithub(trimmed)
+            : normalizeWebsite(trimmed);
   if (!normalized) {
     throw new Error(messages[key]);
   }
@@ -115,4 +126,22 @@ function normalizeGithub(trimmed: string) {
   );
   const username = fromUrl?.[1] ?? fromHandle?.[1];
   return username ? `https://github.com/${username}` : null;
+}
+
+function normalizeWebsite(trimmed: string) {
+  const withProtocol = /^https?:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+  try {
+    const url = new URL(withProtocol);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return null;
+    }
+    if (!url.hostname.includes(".")) {
+      return null;
+    }
+    return url.toString();
+  } catch {
+    return null;
+  }
 }

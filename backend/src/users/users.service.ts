@@ -5,8 +5,10 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { mergeContacts, parseContacts } from "./contacts";
+import { emptyToNull, isGrade } from "./details";
 import { UpdateProfileDto } from "./dto/update-profile.dto";
-import { toPublicProfile } from "./profile";
+import { toMeProfile, toPublicProfile } from "./profile";
+import { mergeVisibility, parseVisibility } from "./visibility";
 
 @Injectable()
 export class UsersService {
@@ -42,6 +44,15 @@ export class UsersService {
       );
     }
 
+    const grade =
+      dto.grade === undefined
+        ? current.grade
+        : dto.grade === null
+          ? null
+          : isGrade(dto.grade)
+            ? dto.grade
+            : current.grade;
+
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -50,12 +61,31 @@ export class UsersService {
         mentorOffered: dto.mentorOffered ?? current.mentorOffered,
         mentorBio:
           dto.mentorBio === undefined ? current.mentorBio : dto.mentorBio,
+        grade,
+        experience:
+          dto.experience === undefined
+            ? current.experience
+            : emptyToNull(dto.experience),
+        workplace:
+          dto.workplace === undefined
+            ? current.workplace
+            : emptyToNull(dto.workplace),
+        country:
+          dto.country === undefined
+            ? current.country
+            : emptyToNull(dto.country),
+        city: dto.city === undefined ? current.city : emptyToNull(dto.city),
+        otherContacts:
+          dto.otherContacts === undefined
+            ? current.otherContacts
+            : emptyToNull(dto.otherContacts),
+        visibility: mergeVisibility(
+          parseVisibility(current.visibility),
+          dto.visibility,
+        ),
       },
     });
 
-    return {
-      ...(await toPublicProfile(this.prisma, user)),
-      email: user.email,
-    };
+    return toMeProfile(this.prisma, user);
   }
 }

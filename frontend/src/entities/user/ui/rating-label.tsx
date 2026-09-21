@@ -8,7 +8,7 @@ type RatingLabelProps = {
 
 export function RatingLabel({ label, rating }: RatingLabelProps) {
   const hasRating = rating.count > 0 && rating.average !== null;
-  const average = hasRating ? rating.average : 0;
+  const average = rating.average ?? 0;
 
   return (
     <div>

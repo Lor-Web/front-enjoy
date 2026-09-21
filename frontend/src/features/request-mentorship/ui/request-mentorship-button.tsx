@@ -42,7 +42,10 @@ export function RequestMentorshipButton({
     return (
       <p className="text-muted-foreground text-sm">
         Вы уже учитесь у этого ментора.{" "}
-        <Link to={routes.cabinet} className="text-primary hover:underline">
+        <Link
+          to={routes.cabinet}
+          className="text-primary underline-offset-4 transition-colors hover:underline"
+        >
           Кабинет
         </Link>
       </p>
@@ -59,7 +62,7 @@ export function RequestMentorshipButton({
       disabled={request.isPending}
       onClick={() => request.mutate(mentorSlug)}
     >
-      Стать учеником
+      Подать заявку на менторство
     </Button>
   );
 }

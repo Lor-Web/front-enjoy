@@ -54,7 +54,7 @@ export function CabinetPage() {
                 >
                   <Link
                     to={routes.profile(item.student.slug)}
-                    className="font-medium"
+                    className="hover:text-primary font-medium underline-offset-4 transition-colors hover:underline"
                   >
                     {item.student.name}
                   </Link>
@@ -97,7 +97,7 @@ export function CabinetPage() {
                     <div className="flex items-baseline justify-between gap-3">
                       <Link
                         to={routes.profile(item.student.slug)}
-                        className="font-medium"
+                        className="hover:text-primary font-medium underline-offset-4 transition-colors hover:underline"
                       >
                         {item.student.name}
                       </Link>
@@ -109,14 +109,18 @@ export function CabinetPage() {
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
                       <Link
                         to={routes.studentProgress(item.id)}
-                        className="text-primary hover:underline"
+                        className="text-primary underline-offset-4 transition-colors hover:underline"
                       >
                         Прогресс
                       </Link>
-                      <ContactLinks contacts={item.student.contacts} />
+                      <ContactLinks
+                        contacts={item.student.contacts}
+                        email={item.student.email}
+                        otherContacts={item.student.otherContacts}
+                      />
                       <button
                         type="button"
-                        className="text-muted-foreground hover:text-foreground"
+                        className="text-muted-foreground hover:text-foreground rounded-sm transition-colors"
                         onClick={() => actions.end.mutate(item.id)}
                         disabled={actions.end.isPending}
                       >
@@ -141,7 +145,7 @@ export function CabinetPage() {
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <Link
                       to={routes.profile(item.mentor.slug)}
-                      className="font-medium"
+                      className="hover:text-primary font-medium underline-offset-4 transition-colors hover:underline"
                     >
                       {item.mentor.name}
                     </Link>
@@ -149,7 +153,11 @@ export function CabinetPage() {
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                     {item.status === "active" ? (
-                      <ContactLinks contacts={item.mentor.contacts} />
+                      <ContactLinks
+                        contacts={item.mentor.contacts}
+                        email={item.mentor.email}
+                        otherContacts={item.mentor.otherContacts}
+                      />
                     ) : null}
                     {item.status === "active" || item.status === "ended" ? (
                       <RatingSheet mentorship={item} />
@@ -157,7 +165,7 @@ export function CabinetPage() {
                     {item.status === "active" ? (
                       <button
                         type="button"
-                        className="text-muted-foreground hover:text-foreground"
+                        className="text-muted-foreground hover:text-foreground rounded-sm transition-colors"
                         onClick={() => actions.end.mutate(item.id)}
                         disabled={actions.end.isPending}
                       >
@@ -173,7 +181,7 @@ export function CabinetPage() {
               Пока нет менторов. Загляните в{" "}
               <Link
                 to={routes.mentors}
-                className="text-primary hover:underline"
+                className="text-primary underline-offset-4 transition-colors hover:underline"
               >
                 каталог
               </Link>
@@ -194,7 +202,10 @@ function RatingSheet({ mentorship }: { mentorship: Mentorship }) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <button type="button" className="text-primary hover:underline">
+        <button
+          type="button"
+          className="text-primary underline-offset-4 transition-colors hover:underline"
+        >
           {current ? `Оценка ${current.score}` : "Оценка"}
         </button>
       </SheetTrigger>

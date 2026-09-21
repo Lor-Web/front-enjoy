@@ -38,10 +38,10 @@ export function CatalogPage() {
             const read = isLessonRead(progress, lesson.slug);
             const passed = isQuizPassed(progress, lesson.quizSlug);
             return (
-              <li key={lesson.slug} className="py-4">
+              <li key={lesson.slug}>
                 <Link
                   to={routes.lesson(lesson.slug)}
-                  className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between"
+                  className="hover:bg-accent/60 -mx-3 flex flex-col gap-2 rounded-md px-3 py-4 transition-colors sm:flex-row sm:items-baseline sm:justify-between"
                 >
                   <span>
                     <span className="text-muted-foreground mr-3 font-mono text-sm">

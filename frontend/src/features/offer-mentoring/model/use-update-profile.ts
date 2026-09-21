@@ -1,18 +1,32 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { MeProfile, UserContacts } from "@/entities/user";
+import type {
+  Grade,
+  MeProfile,
+  ProfileVisibility,
+  UserContacts,
+} from "@/entities/user";
 import { api } from "@/shared/lib/api";
 import { toastSuccess } from "@/shared/lib/toast";
+
+export type UpdateProfilePayload = {
+  name?: string;
+  mentorOffered?: boolean;
+  mentorBio?: string | null;
+  grade?: Grade | null;
+  experience?: string | null;
+  workplace?: string | null;
+  country?: string | null;
+  city?: string | null;
+  otherContacts?: string | null;
+  contacts?: Partial<UserContacts>;
+  visibility?: Partial<ProfileVisibility>;
+};
 
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: {
-      name?: string;
-      mentorOffered?: boolean;
-      mentorBio?: string | null;
-      contacts?: Partial<UserContacts>;
-    }) => {
+    mutationFn: async (payload: UpdateProfilePayload) => {
       const { data } = await api.patch<MeProfile>("/users/me", payload);
       return data;
     },

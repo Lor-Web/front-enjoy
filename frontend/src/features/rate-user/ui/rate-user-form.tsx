@@ -50,10 +50,10 @@ export function RateUserForm({
               <button
                 key={value}
                 type="button"
-                className={`size-8 rounded-md border text-sm ${
+                className={`size-8 cursor-pointer rounded-md border text-sm transition-[color,background-color,transform] outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px] active:scale-95 ${
                   score === value
                     ? "bg-primary text-primary-foreground"
-                    : "hover:bg-accent"
+                    : "hover:bg-accent hover:text-accent-foreground"
                 }`}
                 onClick={() => setScore(value)}
               >

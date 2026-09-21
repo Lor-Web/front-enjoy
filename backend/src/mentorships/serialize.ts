@@ -6,9 +6,17 @@ const profileSelect = {
   id: true,
   name: true,
   slug: true,
+  email: true,
   contacts: true,
   mentorOffered: true,
   mentorBio: true,
+  grade: true,
+  experience: true,
+  workplace: true,
+  country: true,
+  city: true,
+  otherContacts: true,
+  visibility: true,
 } as const;
 
 export const mentorshipInclude = {
@@ -30,8 +38,8 @@ export async function serializeMentorship(
     id: row.id,
     status: row.status as MentorshipStatus,
     startedAt: row.startedAt?.toISOString() ?? null,
-    mentor: await toPublicProfile(prisma, row.mentor),
-    student: await toPublicProfile(prisma, row.student),
+    mentor: await toPublicProfile(prisma, row.mentor, "connected"),
+    student: await toPublicProfile(prisma, row.student, "connected"),
     myRatings: viewerId
       ? row.ratings
           .filter((rating) => rating.fromUserId === viewerId)

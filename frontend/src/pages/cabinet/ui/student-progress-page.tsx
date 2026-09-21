@@ -60,7 +60,14 @@ export function StudentProgressPage() {
             Кабинет
           </Link>
         </p>
-        <h1 className="mb-2 text-3xl sm:text-4xl">{data.student.name}</h1>
+        <h1 className="mb-2 text-3xl sm:text-4xl">
+          <Link
+            to={routes.profile(data.student.slug)}
+            className="hover:underline"
+          >
+            {data.student.name}
+          </Link>
+        </h1>
         <p className="text-muted-foreground mb-6 text-[17px] leading-7">
           Трек React
         </p>

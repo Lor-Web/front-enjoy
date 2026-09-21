@@ -1,5 +1,10 @@
 import { Link, useParams } from "react-router";
-import { ContactLinks, RatingLabel, useProfile } from "@/entities/user";
+import {
+  ContactLinks,
+  ProfileFacts,
+  RatingLabel,
+  useProfile,
+} from "@/entities/user";
 import { useMe } from "@/features/auth";
 import { RequestMentorshipButton } from "@/features/request-mentorship";
 import { routes } from "@/shared/config/routes";
@@ -44,10 +49,16 @@ export function ProfilePage() {
           <RatingLabel label="Как ментор" rating={profile.mentorRating} />
           <RatingLabel label="Как ученик" rating={profile.studentRating} />
         </div>
+        <ProfileFacts profile={profile} />
         {profile.mentorBio ? (
           <p className="mb-6 text-[17px] leading-7">{profile.mentorBio}</p>
         ) : null}
-        <ContactLinks className="mb-8" contacts={profile.contacts} />
+        <ContactLinks
+          className="mb-8"
+          contacts={profile.contacts}
+          email={profile.email}
+          otherContacts={profile.otherContacts}
+        />
         {isSelf ? (
           <Button asChild>
             <Link to={routes.me}>Редактировать профиль</Link>

@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Lock, LogIn, Mail } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router";
-import { useAuth } from "@/features/auth";
+import { type LoginValues, loginSchema, useAuth } from "@/features/auth";
 import { routes } from "@/shared/config/routes";
 import { Button } from "@/shared/ui/button";
+import { Field, fieldDescribedBy, fieldError } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { AppShell } from "@/widgets/app-shell";
 
@@ -12,8 +15,15 @@ export function LoginPage() {
   const location = useLocation();
   const from =
     (location.state as { from?: string } | null)?.from ?? routes.cabinet;
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    mode: "onTouched",
+    defaultValues: { email: "", password: "" },
+  });
 
   return (
     <AppShell>
@@ -25,44 +35,64 @@ export function LoginPage() {
         </p>
         <form
           className="space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            login.mutate(
-              { email, password },
-              { onSuccess: () => navigate(from, { replace: true }) },
-            );
-          }}
+          noValidate
+          onSubmit={handleSubmit((values) => {
+            login.mutate(values, {
+              onSuccess: () => navigate(from, { replace: true }),
+            });
+          })}
         >
-          <label className="block space-y-1 text-sm" htmlFor="login-email">
-            <span>Email</span>
+          <Field
+            id="login-email"
+            label="Email"
+            required
+            error={fieldError(errors.email)}
+          >
             <Input
               id="login-email"
+              icon={Mail}
               type="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
               autoComplete="email"
+              placeholder="anna@example.com"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={fieldDescribedBy(
+                "login-email",
+                fieldError(errors.email),
+              )}
+              {...register("email")}
             />
-          </label>
-          <label className="block space-y-1 text-sm" htmlFor="login-password">
-            <span>Пароль</span>
+          </Field>
+          <Field
+            id="login-password"
+            label="Пароль"
+            required
+            error={fieldError(errors.password)}
+          >
             <Input
               id="login-password"
+              icon={Lock}
               type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
+              placeholder="Ваш пароль"
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={fieldDescribedBy(
+                "login-password",
+                fieldError(errors.password),
+              )}
+              {...register("password")}
             />
-          </label>
+          </Field>
           <Button type="submit" disabled={login.isPending}>
+            <LogIn />
             Войти
           </Button>
         </form>
         <p className="text-muted-foreground mt-6 text-sm">
           Нет аккаунта?{" "}
-          <Link to={routes.signup} className="text-primary hover:underline">
+          <Link
+            to={routes.signup}
+            className="text-primary underline-offset-4 transition-colors hover:underline"
+          >
             Регистрация
           </Link>
         </p>

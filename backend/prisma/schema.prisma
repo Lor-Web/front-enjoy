@@ -16,6 +16,13 @@ model User {
   contacts      Json     @default("{}")
   mentorOffered Boolean  @default(false)
   mentorBio     String?
+  grade         String?
+  experience    String?
+  workplace     String?
+  country       String?
+  city          String?
+  otherContacts String?
+  visibility    Json     @default("{}")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

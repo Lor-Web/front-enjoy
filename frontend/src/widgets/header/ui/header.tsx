@@ -47,7 +47,7 @@ export function Header({ mobileNav }: HeaderProps) {
 
         <Link
           to={routes.home}
-          className="font-serif text-lg font-medium tracking-tight"
+          className="hover:text-primary font-serif text-lg font-medium tracking-tight transition-colors"
         >
           Front Enjoy
         </Link>
@@ -57,8 +57,8 @@ export function Header({ mobileNav }: HeaderProps) {
             to={routes.catalog}
             className={({ isActive }) =>
               isActive
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-accent text-foreground rounded-md px-2 py-1"
+                : "text-muted-foreground hover:bg-accent/70 hover:text-foreground rounded-md px-2 py-1 transition-colors"
             }
           >
             Трек React
@@ -67,8 +67,8 @@ export function Header({ mobileNav }: HeaderProps) {
             to={routes.mentors}
             className={({ isActive }) =>
               isActive
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-accent text-foreground rounded-md px-2 py-1"
+                : "text-muted-foreground hover:bg-accent/70 hover:text-foreground rounded-md px-2 py-1 transition-colors"
             }
           >
             Менторы

@@ -67,7 +67,7 @@ export function LessonSidebar() {
                         ? `Свернуть разделы: ${lesson.title}`
                         : `Развернуть разделы: ${lesson.title}`
                     }
-                    className="text-muted-foreground hover:text-foreground mt-1.5 flex size-6 shrink-0 items-center justify-center rounded-sm"
+                    className="text-muted-foreground hover:bg-accent hover:text-foreground mt-1.5 flex size-6 shrink-0 items-center justify-center rounded-sm transition-colors"
                     onClick={() =>
                       setExpandedMap((prev) => ({
                         ...prev,
@@ -88,10 +88,10 @@ export function LessonSidebar() {
                 <Link
                   to={routes.toLesson(lesson.slug)}
                   className={cn(
-                    "min-w-0 flex-1 rounded-md px-1.5 py-1.5 text-sm leading-5",
+                    "min-w-0 flex-1 rounded-md px-1.5 py-1.5 text-sm leading-5 transition-colors",
                     active
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground",
+                      ? "bg-accent text-foreground"
+                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                   )}
                 >
                   <span className="flex items-start gap-2">
@@ -176,10 +176,10 @@ function HeadingLink({
   samePage: boolean;
 }) {
   const className = cn(
-    "block rounded-md px-2 py-1 text-[13px] leading-5",
+    "block rounded-md px-2 py-1 text-[13px] leading-5 transition-colors",
     current
       ? "bg-accent text-foreground"
-      : "text-muted-foreground hover:text-foreground",
+      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
   );
 
   if (samePage) {

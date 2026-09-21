@@ -1,5 +1,10 @@
 import { Link } from "react-router";
-import { RatingLabel, useMentors } from "@/entities/user";
+import {
+  GradeBadge,
+  type PublicProfile,
+  RatingLabel,
+  useMentors,
+} from "@/entities/user";
 import { routes } from "@/shared/config/routes";
 import { Badge } from "@/shared/ui/badge";
 import { AppShell } from "@/widgets/app-shell";
@@ -22,7 +27,10 @@ export function MentorsPage() {
         ) : mentors.length === 0 ? (
           <p className="text-muted-foreground">
             Пока никто не открыл набор учеников. Можно{" "}
-            <Link to={routes.me} className="text-primary hover:underline">
+            <Link
+              to={routes.me}
+              className="text-primary underline-offset-4 transition-colors hover:underline"
+            >
               стать ментором
             </Link>{" "}
             в своём профиле.
@@ -30,12 +38,16 @@ export function MentorsPage() {
         ) : (
           <ul className="divide-y border-y">
             {mentors.map((mentor) => (
-              <li key={mentor.id} className="py-4">
-                <Link to={routes.profile(mentor.slug)} className="block">
+              <li key={mentor.id}>
+                <Link
+                  to={routes.profile(mentor.slug)}
+                  className="hover:bg-accent/60 -mx-3 block rounded-md px-3 py-4 transition-colors"
+                >
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="text-[17px]">{mentor.name}</span>
                     <Badge>Ментор</Badge>
                   </span>
+                  <MentorMeta mentor={mentor} />
                   {mentor.mentorBio ? (
                     <p className="text-muted-foreground mt-1 text-sm leading-6">
                       {mentor.mentorBio}
@@ -54,5 +66,20 @@ export function MentorsPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+function MentorMeta({ mentor }: { mentor: PublicProfile }) {
+  const location = [mentor.city, mentor.country].filter(Boolean).join(", ");
+  if (!mentor.grade && !location) {
+    return null;
+  }
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+      <GradeBadge grade={mentor.grade} />
+      {location ? (
+        <span className="text-muted-foreground text-sm">{location}</span>
+      ) : null}
+    </div>
   );
 }
