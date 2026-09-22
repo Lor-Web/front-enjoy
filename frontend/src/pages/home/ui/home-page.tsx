@@ -1,7 +1,6 @@
-import { useAtomValue } from "jotai";
 import { Link } from "react-router";
 import { useLessons } from "@/entities/lesson";
-import { progressAtom, trackProgressPercent } from "@/entities/progress";
+import { trackProgressPercent, useProgress } from "@/entities/progress";
 import { routes } from "@/shared/config/routes";
 import { TRACK_TITLE } from "@/shared/config/tracks";
 import { Button } from "@/shared/ui/button";
@@ -10,7 +9,7 @@ import { AppShell } from "@/widgets/app-shell";
 
 export function HomePage() {
   const { data: lessons = [] } = useLessons();
-  const progress = useAtomValue(progressAtom);
+  const { progress, isSignedIn } = useProgress();
   const percent = trackProgressPercent(
     progress,
     lessons.map((lesson) => lesson.slug),
@@ -27,8 +26,8 @@ export function HomePage() {
         <p className="text-muted-foreground mb-8 text-[17px] leading-7">
           Короткие текстовые уроки и мини-квизы. Сейчас открыт трек React: от
           установки и первого компонента до общего состояния — на примере меню
-          кафе. Читать можно без аккаунта; вход — чтобы найти ментора или
-          принимать учеников.
+          кафе. Читать можно без аккаунта; вход сохраняет прогресс и открывает
+          менторство.
         </p>
         <div className="flex flex-wrap gap-3">
           {first ? (
@@ -55,8 +54,25 @@ export function HomePage() {
                 : "уроков"}{" "}
             · опора на документацию react.dev
           </p>
-          <Progress value={percent} className="mb-2" />
-          <p className="text-muted-foreground text-sm">{percent}% пройдено</p>
+          {isSignedIn ? (
+            <>
+              <Progress value={percent} className="mb-2" />
+              <p className="text-muted-foreground text-sm">
+                {percent}% пройдено
+              </p>
+            </>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              <Link
+                to={routes.login}
+                state={{ from: routes.home }}
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                {"Войдите"}
+              </Link>
+              {", чтобы сохранять отметки «прочитано» и сдачу квизов."}
+            </p>
+          )}
         </section>
       </div>
     </AppShell>

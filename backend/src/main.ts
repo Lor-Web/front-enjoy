@@ -13,7 +13,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: origins,
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Voter-Id"],
   });
   app.useGlobalPipes(new ValidationPipe(validationPipeOptions));
 

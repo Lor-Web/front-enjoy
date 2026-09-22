@@ -1,11 +1,10 @@
-import { useAtomValue } from "jotai";
 import { Link } from "react-router";
 import { useLessons } from "@/entities/lesson";
 import {
   isLessonRead,
   isQuizPassed,
-  progressAtom,
   trackProgressPercent,
+  useProgress,
 } from "@/entities/progress";
 import { routes } from "@/shared/config/routes";
 import { useDocVersion } from "@/shared/lib/doc-version";
@@ -17,7 +16,7 @@ import { LessonSidebar } from "@/widgets/lesson-sidebar";
 export function CatalogPage() {
   const { data: lessons = [] } = useLessons();
   const version = useDocVersion();
-  const progress = useAtomValue(progressAtom);
+  const { progress, isSignedIn } = useProgress();
   const percent = trackProgressPercent(
     progress,
     lessons.map((lesson) => lesson.slug),
@@ -31,15 +30,31 @@ export function CatalogPage() {
           Меню кафе «Зёрнышко»: установка, компоненты, JSX, пропсы, условия,
           списки, события и состояние. После каждого урока — мини-квиз.
         </p>
-        <Progress value={percent} className="mb-2" />
-        <p className="text-muted-foreground mb-8 text-sm">
-          {percent}% пройдено
-        </p>
+        {isSignedIn ? (
+          <>
+            <Progress value={percent} className="mb-2" />
+            <p className="text-muted-foreground mb-8 text-sm">
+              {percent}% пройдено
+            </p>
+          </>
+        ) : (
+          <p className="text-muted-foreground mb-8 text-sm">
+            <Link
+              to={routes.login}
+              state={{ from: routes.catalog }}
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              {"Войдите"}
+            </Link>
+            {", чтобы сохранять прогресс по урокам."}
+          </p>
+        )}
 
         <ol className="divide-y border-y">
           {lessons.map((lesson) => {
-            const read = isLessonRead(progress, lesson.slug);
-            const passed = isQuizPassed(progress, lesson.quizSlug);
+            const read = isSignedIn && isLessonRead(progress, lesson.slug);
+            const passed =
+              isSignedIn && isQuizPassed(progress, lesson.quizSlug);
             return (
               <li key={lesson.slug}>
                 <Link

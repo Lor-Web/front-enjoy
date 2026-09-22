@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { CurrentUser } from "../auth/current-user.decorator";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
-import { UpsertProgressDto } from "./dto/upsert-progress.dto";
+import { RecordQuizDto } from "./dto/record-quiz.dto";
 import { ProgressService } from "./progress.service";
 
 @Controller("progress")
@@ -14,8 +14,17 @@ export class ProgressController {
     return this.progress.get(user.id);
   }
 
-  @Put("me")
-  merge(@CurrentUser() user: { id: string }, @Body() dto: UpsertProgressDto) {
-    return this.progress.merge(user.id, dto);
+  @Post("lessons/:slug")
+  markRead(@CurrentUser() user: { id: string }, @Param("slug") slug: string) {
+    return this.progress.markRead(user.id, slug);
+  }
+
+  @Post("quizzes/:slug")
+  recordQuiz(
+    @CurrentUser() user: { id: string },
+    @Param("slug") slug: string,
+    @Body() dto: RecordQuizDto,
+  ) {
+    return this.progress.recordQuiz(user.id, slug, dto.passed);
   }
 }

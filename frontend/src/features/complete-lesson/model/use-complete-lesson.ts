@@ -1,24 +1,27 @@
-import { useSetAtom, useStore } from "jotai";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAtomValue } from "jotai";
 import { useCallback } from "react";
-import { persistProgress, progressAtom } from "@/entities/progress";
+import { isLessonRead, markLessonRead, useProgress } from "@/entities/progress";
+import { tokenAtom } from "@/features/auth";
 
 export function useCompleteLesson() {
-  const store = useStore();
-  const setProgress = useSetAtom(progressAtom);
+  const token = useAtomValue(tokenAtom);
+  const queryClient = useQueryClient();
+  const { progress } = useProgress();
+  const mutation = useMutation({
+    mutationFn: markLessonRead,
+    onSuccess: (data) => {
+      queryClient.setQueryData(["progress", "me"], data);
+    },
+  });
 
   return useCallback(
     (slug: string) => {
-      const prev = store.get(progressAtom);
-      if (prev.readLessonIds.includes(slug)) {
+      if (!token || isLessonRead(progress, slug)) {
         return;
       }
-      const next = {
-        ...prev,
-        readLessonIds: [...prev.readLessonIds, slug],
-      };
-      setProgress(next);
-      void persistProgress(next);
+      mutation.mutate(slug);
     },
-    [setProgress, store],
+    [mutation, progress, token],
   );
 }

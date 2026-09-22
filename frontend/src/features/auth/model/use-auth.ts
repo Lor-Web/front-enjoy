@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAtom, useSetAtom } from "jotai";
-import { persistProgress, progressAtom } from "@/entities/progress";
+import { useSetAtom } from "jotai";
 import type { MeProfile } from "@/entities/user";
 import { api } from "@/shared/lib/api";
 import { tokenAtom } from "./token-atom";
@@ -13,15 +12,12 @@ type AuthResponse = {
 export function useAuth() {
   const queryClient = useQueryClient();
   const setToken = useSetAtom(tokenAtom);
-  const [progress, setProgress] = useAtom(progressAtom);
 
   const applySession = async (response: AuthResponse) => {
     setToken(response.token);
     queryClient.setQueryData(["auth", "me"], response.user);
-    const merged = await persistProgress(progress, response.token);
-    if (merged) {
-      setProgress(merged);
-    }
+    await queryClient.invalidateQueries({ queryKey: ["progress"] });
+    await queryClient.invalidateQueries({ queryKey: ["content-vote"] });
   };
 
   const login = useMutation({
@@ -55,5 +51,7 @@ export function useLogout() {
     setToken(null);
     queryClient.removeQueries({ queryKey: ["auth"] });
     queryClient.removeQueries({ queryKey: ["mentorships"] });
+    queryClient.removeQueries({ queryKey: ["progress"] });
+    queryClient.removeQueries({ queryKey: ["content-vote"] });
   };
 }

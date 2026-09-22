@@ -1,25 +1,23 @@
-import { useSetAtom, useStore } from "jotai";
-import { persistProgress, progressAtom } from "@/entities/progress";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAtomValue } from "jotai";
+import { recordQuizProgress } from "@/entities/progress";
+import { tokenAtom } from "@/features/auth";
 
 export function useSubmitQuiz() {
-  const store = useStore();
-  const setProgress = useSetAtom(progressAtom);
+  const token = useAtomValue(tokenAtom);
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: ({ slug, passed }: { slug: string; passed: boolean }) =>
+      recordQuizProgress(slug, passed),
+    onSuccess: (data) => {
+      queryClient.setQueryData(["progress", "me"], data);
+    },
+  });
 
   return (slug: string, passed: boolean) => {
-    const prev = store.get(progressAtom);
-    const alreadyPassed = prev.passedQuizIds.includes(slug);
-    const attempts = alreadyPassed
-      ? (prev.quizAttempts[slug] ?? 0)
-      : (prev.quizAttempts[slug] ?? 0) + 1;
-    const next = {
-      ...prev,
-      quizAttempts: { ...prev.quizAttempts, [slug]: attempts },
-      passedQuizIds:
-        passed && !alreadyPassed
-          ? [...prev.passedQuizIds, slug]
-          : prev.passedQuizIds,
-    };
-    setProgress(next);
-    void persistProgress(next);
+    if (!token) {
+      return;
+    }
+    mutation.mutate({ slug, passed });
   };
 }

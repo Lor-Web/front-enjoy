@@ -1,25 +1,70 @@
-import { useAtom } from "jotai";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
+import { api } from "@/shared/lib/api";
+import { getVoterId } from "../lib/voter-id";
 import {
   applyVote,
+  type ContentRatingState,
   type ContentVote,
-  contentVotesAtom,
   emptyRating,
 } from "./votes-atom";
 
+const empty = emptyRating();
+
+function voteHeaders() {
+  return { "X-Voter-Id": getVoterId() };
+}
+
 export function useContentVote(targetId: string) {
-  const [votes, setVotes] = useAtom(contentVotesAtom);
-  const rating = votes[targetId] ?? emptyRating();
+  const queryClient = useQueryClient();
+  const queryKey = ["content-vote", targetId] as const;
+
+  const query = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const { data } = await api.get<ContentRatingState>("/content-votes", {
+        params: { targetId },
+        headers: voteHeaders(),
+      });
+      return data;
+    },
+    placeholderData: empty,
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (vote: ContentVote) => {
+      const { data } = await api.put<ContentRatingState>(
+        "/content-votes",
+        { targetId, vote },
+        { headers: voteHeaders() },
+      );
+      return data;
+    },
+    onMutate: async (vote) => {
+      await queryClient.cancelQueries({ queryKey });
+      const prev = queryClient.getQueryData<ContentRatingState>(queryKey);
+      queryClient.setQueryData(
+        queryKey,
+        applyVote(prev ?? emptyRating(), vote),
+      );
+      return { prev };
+    },
+    onError: (_error, _vote, context) => {
+      if (context?.prev) {
+        queryClient.setQueryData(queryKey, context.prev);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKey, data);
+    },
+  });
 
   const setVote = useCallback(
     (next: ContentVote) => {
-      setVotes((prev) => ({
-        ...prev,
-        [targetId]: applyVote(prev[targetId] ?? emptyRating(), next),
-      }));
+      mutation.mutate(next);
     },
-    [setVotes, targetId],
+    [mutation],
   );
 
-  return { rating, setVote };
+  return { rating: query.data ?? emptyRating(), setVote };
 }

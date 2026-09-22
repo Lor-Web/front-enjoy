@@ -1,17 +1,4 @@
-import { atomWithStorage, createJSONStorage } from "jotai/utils";
-import { emptyProgress, normalizeProgress, type ProgressState } from "./types";
-
-const storage = createJSONStorage<ProgressState>(() => localStorage);
-
-export const progressAtom = atomWithStorage<ProgressState>(
-  "fe-progress",
-  emptyProgress,
-  {
-    ...storage,
-    getItem: (key, initial) => normalizeProgress(storage.getItem(key, initial)),
-  },
-  { getOnInit: true },
-);
+import type { ProgressState } from "./types";
 
 export function isLessonRead(progress: ProgressState, slug: string) {
   return progress.readLessonIds.includes(slug);

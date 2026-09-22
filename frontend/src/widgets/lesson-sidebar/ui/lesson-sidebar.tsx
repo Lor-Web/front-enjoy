@@ -1,10 +1,11 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { ChevronRight } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { getLessonVariant, useLessons } from "@/entities/lesson";
-import { isLessonRead, isQuizPassed, progressAtom } from "@/entities/progress";
+import { isLessonRead, isQuizPassed, useProgress } from "@/entities/progress";
 import { useLessonView } from "@/features/select-lesson-view";
 import { routes } from "@/shared/config/routes";
+import { TRACK_TITLE } from "@/shared/config/tracks";
 import { useDocVersion } from "@/shared/lib/doc-version";
 import { scrollToHash } from "@/shared/lib/scroll-to-hash";
 import { cn } from "@/shared/lib/utils";
@@ -15,7 +16,7 @@ import { DocsVersionSelect } from "./docs-version-select";
 
 export function LessonSidebar() {
   const { data: lessons = [] } = useLessons();
-  const progress = useAtomValue(progressAtom);
+  const { progress, isSignedIn } = useProgress();
   const location = useLocation();
   const version = useDocVersion();
   const [view] = useLessonView();
@@ -41,16 +42,19 @@ export function LessonSidebar() {
   return (
     <nav aria-label="Оглавление трека" className="px-3 py-4">
       <div className="mb-3 flex items-center justify-between gap-2 px-2">
-        <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-          React
-        </p>
+        <Link
+          to={routes.toCatalog(version)}
+          className="text-muted-foreground hover:text-foreground text-xs font-medium tracking-wide uppercase transition-colors"
+        >
+          {TRACK_TITLE}
+        </Link>
         <DocsVersionSelect />
       </div>
       <ol className="space-y-1">
         {lessons.map((lesson, index) => {
           const active = activeLesson?.slug === lesson.slug;
-          const read = isLessonRead(progress, lesson.slug);
-          const passed = isQuizPassed(progress, lesson.quizSlug);
+          const read = isSignedIn && isLessonRead(progress, lesson.slug);
+          const passed = isSignedIn && isQuizPassed(progress, lesson.quizSlug);
           const headings =
             active && onLessonPage
               ? activeHeadings
@@ -106,9 +110,15 @@ export function LessonSidebar() {
                     </span>
                     <span className="min-w-0">
                       <span className="block">{lesson.title}</span>
-                      <span className="text-muted-foreground mt-0.5 block text-xs">
-                        {passed ? "Квиз сдан" : read ? "Прочитано" : "Не начат"}
-                      </span>
+                      {isSignedIn ? (
+                        <span className="text-muted-foreground mt-0.5 block text-xs">
+                          {passed
+                            ? "Квиз сдан"
+                            : read
+                              ? "Прочитано"
+                              : "Не прочитано"}
+                        </span>
+                      ) : null}
                     </span>
                   </span>
                 </Link>

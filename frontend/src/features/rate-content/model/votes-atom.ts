@@ -1,5 +1,3 @@
-import { atomWithStorage } from "jotai/utils";
-
 export type ContentVote = "up" | "down";
 
 export type ContentRatingState = {
@@ -7,10 +5,6 @@ export type ContentRatingState = {
   up: number;
   down: number;
 };
-
-export const contentVotesAtom = atomWithStorage<
-  Record<string, ContentRatingState>
->("fe-content-votes-v2", {}, undefined, { getOnInit: true });
 
 export function emptyRating(): ContentRatingState {
   return { up: 0, down: 0 };

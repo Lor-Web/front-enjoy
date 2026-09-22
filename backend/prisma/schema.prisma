@@ -97,3 +97,20 @@ model Rating {
 
   @@unique([mentorshipId, fromUserId, aspect])
 }
+
+enum ContentVoteValue {
+  up
+  down
+}
+
+model ContentVote {
+  id        String           @id @default(cuid())
+  targetId  String
+  voterKey  String
+  vote      ContentVoteValue
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([targetId, voterKey])
+  @@index([targetId])
+}
