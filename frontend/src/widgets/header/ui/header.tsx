@@ -22,7 +22,7 @@ type HeaderProps = {
 export function Header({ mobileNav }: HeaderProps) {
   return (
     <header className="bg-background/90 sticky top-0 z-40 border-b backdrop-blur-sm">
-      <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-4 sm:px-6">
+      <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 overflow-hidden px-4 sm:px-6">
         {mobileNav ? (
           <Sheet>
             <SheetTrigger asChild>
@@ -48,20 +48,32 @@ export function Header({ mobileNav }: HeaderProps) {
 
         <Link
           to={routes.home}
-          className="hover:text-primary font-serif text-lg font-medium tracking-tight transition-colors"
+          className="hover:text-primary shrink-0 font-serif text-lg font-medium tracking-tight whitespace-nowrap transition-colors"
         >
           Front Enjoy
         </Link>
 
-        <nav className="ml-2 flex min-w-0 items-center gap-3 text-sm">
-          <DocsNav />
+        <nav className="ml-2 flex min-w-0 items-center gap-1 text-sm sm:gap-3">
+          <div className="hidden sm:block">
+            <DocsNav />
+          </div>
+          <NavLink
+            to={routes.courses}
+            className={({ isActive }) =>
+              isActive
+                ? "bg-accent text-foreground rounded-md px-2 py-1"
+                : "text-muted-foreground hover:bg-accent/70 hover:text-foreground rounded-md px-2 py-1 transition-colors"
+            }
+          >
+            Курсы
+          </NavLink>
           <NavLink
             to={routes.users}
             end
             className={({ isActive }) =>
               isActive
-                ? "bg-accent text-foreground rounded-md px-2 py-1"
-                : "text-muted-foreground hover:bg-accent/70 hover:text-foreground rounded-md px-2 py-1 transition-colors"
+                ? "bg-accent text-foreground hidden rounded-md px-2 py-1 md:inline"
+                : "text-muted-foreground hover:bg-accent/70 hover:text-foreground hidden rounded-md px-2 py-1 transition-colors md:inline"
             }
           >
             Пользователи

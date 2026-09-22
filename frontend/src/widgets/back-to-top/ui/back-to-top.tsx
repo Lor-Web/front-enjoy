@@ -12,7 +12,11 @@ export function BackToTop({ raised = false }: BackToTopProps) {
 
   useEffect(() => {
     const onScroll = () => {
-      setVisible(window.scrollY > 400);
+      const y =
+        window.scrollY ||
+        document.documentElement.scrollTop ||
+        document.body.scrollTop;
+      setVisible(y > 160);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });

@@ -51,6 +51,8 @@ export const routes = {
   docsJavascript: "/docs/javascript",
   users: "/users",
   mentors: "/users?mentors=1",
+  courses: "/courses",
+  course: (slug: string) => `/courses/${slug}`,
   profile: (slug: string) => `/u/${slug}`,
   me: "/me",
   cabinet: "/cabinet",
