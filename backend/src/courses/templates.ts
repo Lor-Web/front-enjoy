@@ -1,5 +1,5 @@
 export const COURSE_HOMEWORK_REPOS: Record<string, string> = {
-  polka: "hw-polka",
+  polka: "front-enjoy-polka",
 };
 
 export function homeworkRepoName(courseSlug: string) {

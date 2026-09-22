@@ -1,43 +1,15 @@
-import { useEffect } from "react";
-import { useSearchParams } from "react-router";
 import { GitHubIcon } from "@/entities/user";
-import { toastError, toastSuccess } from "@/shared/lib/toast";
 import { Button } from "@/shared/ui/button";
 import { useGithubConnect } from "../model/use-github";
-
-const CALLBACK: Record<string, { ok: boolean; text: string }> = {
-  linked: { ok: true, text: "GitHub подключён" },
-  denied: { ok: false, text: "Вы не дали доступ GitHub" },
-  taken: {
-    ok: false,
-    text: "Этот GitHub уже привязан к другому аккаунту",
-  },
-  error: { ok: false, text: "Не получилось подключить GitHub" },
-};
+import { useGithubCallbackToast } from "../model/use-github-callback";
 
 type GithubConnectProps = {
   githubLogin: string | null;
 };
 
 export function GithubConnect({ githubLogin }: GithubConnectProps) {
-  const [params, setParams] = useSearchParams();
+  useGithubCallbackToast();
   const { connect, disconnect } = useGithubConnect();
-
-  useEffect(() => {
-    const status = params.get("github");
-    if (!status) {
-      return;
-    }
-    const message = CALLBACK[status];
-    if (message?.ok) {
-      toastSuccess(message.text);
-    } else if (message) {
-      toastError(message.text);
-    }
-    const next = new URLSearchParams(params);
-    next.delete("github");
-    setParams(next, { replace: true });
-  }, [params, setParams]);
 
   return (
     <div className="hover:border-ring/40 mb-8 flex items-center justify-between gap-4 rounded-md border p-3 transition-colors">
@@ -70,7 +42,7 @@ export function GithubConnect({ githubLogin }: GithubConnectProps) {
           type="button"
           size="sm"
           disabled={connect.isPending}
-          onClick={() => connect.mutate()}
+          onClick={() => connect.mutate("/me")}
         >
           Подключить
         </Button>

@@ -12,7 +12,7 @@ export function useGithubConnect() {
   const queryClient = useQueryClient();
 
   const connect = useMutation({
-    mutationFn: startGithubConnect,
+    mutationFn: (next?: string) => startGithubConnect(next),
     onSuccess: (url) => {
       window.location.assign(url);
     },
@@ -38,7 +38,7 @@ export function useCourseRepository(slug: string, enabled: boolean) {
     enabled,
     queryFn: async () => {
       try {
-        return await fetchCourseRepository(slug);
+        return (await fetchCourseRepository(slug)) ?? null;
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
           return null;
@@ -55,7 +55,7 @@ export function useCreateCourseRepository(slug: string) {
     mutationFn: () => createCourseRepository(slug),
     onSuccess: (repo) => {
       queryClient.setQueryData(["course-repository", slug], repo);
-      toastSuccess("Репозиторий создан. Примите приглашение в GitHub.");
+      toastSuccess("Репозиторий создан");
     },
     onError: toastError,
   });

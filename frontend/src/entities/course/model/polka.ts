@@ -512,7 +512,7 @@ export default defineConfig([
             },
             {
               type: "p",
-              text: "На этом мастерская модуля готова: Node есть, Vite поднимает страницу, вы знаете папки, ESLint орёт на типичные React-дыры. Дальше начнём резать интерфейс на компоненты и собирать Полку. Без этой базы следующий модуль будет ощущаться как «просто пишите JSX» — и снова каша.",
+              text: "На этом урок про линтер закончен. Перед компонентами — домашнее задание: свой репозиторий, проект на Vite и настройка ESLint. Без сдачи следующий модуль закрыт.",
             },
           ],
           work: {
@@ -523,6 +523,106 @@ export default defineConfig([
               "`npm run lint` выполняется: либо без ошибок, либо вы понимаете список и можете его открыть",
               "В редакторе ESLint видит проект (расширение стоит, открыта папка, не один файл)",
             ],
+          },
+        },
+        {
+          slug: "domashnee-zadanie",
+          title: "Домашнее задание",
+          summary:
+            "Свой репозиторий: Vite, алиас, ESLint, README. Сдача — PR ментору из ветки module_1.",
+          body: [
+            {
+              type: "p",
+              text: "Уроки модуля были для понимания. Здесь собираете проект в репозитории курса. Папку `fe-checks` и `.github` не удаляйте: там проверки на pull request.",
+            },
+            {
+              type: "p",
+              text: "Сверху на странице — GitHub, репозиторий, ссылка на PR. Работайте в ветке `module_1`, PR открывайте в `main`. Сдать можно только активному ментору.",
+            },
+            {
+              type: "h2",
+              text: "Приложение на Vite",
+            },
+            {
+              type: "p",
+              text: "В корне репозитория (не во вложенной папке): `npm create vite@latest . -- --template react`. Не `react-ts`. Если Vite спросит про уже лежащие файлы — оставьте проверки. Дальше `npm install` и `npm run dev`. Точка входа — `src/main.jsx`.",
+            },
+            {
+              type: "h2",
+              text: "Алиас `@` в Vite",
+            },
+            {
+              type: "p",
+              text: "В `vite.config.js` настройте `resolve.alias`, чтобы `@` указывал на папку `src`. Тогда `import Button from '@/Button.jsx'` читается как `src/Button.jsx`. Это не магия React, а опция сборщика: [resolve.alias в документации Vite](https://vite.dev/config/shared-options.html#resolve-alias).",
+            },
+            {
+              type: "p",
+              text: "Пример:",
+            },
+            {
+              type: "code",
+              lang: "js",
+              text: `import { fileURLToPath, URL } from "node:url";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+  },
+});`,
+            },
+            {
+              type: "h2",
+              text: "ESLint: правила",
+            },
+            {
+              type: "p",
+              text: "Подключите ESLint, как в уроке: пакеты `@eslint/js`, `globals`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, файл `eslint.config.js` для `**/*.{js,jsx}`.",
+            },
+            {
+              type: "p",
+              text: "В `rules` обязательно:",
+            },
+            {
+              type: "ul",
+              items: [
+                '`eqeqeq`: `"error"` — только `===` / `!==`, без `==`',
+                '`no-var`: `"error"` — `let` / `const`, не `var`',
+              ],
+            },
+            {
+              type: "p",
+              text: "Плагин `eslint-plugin-react-hooks` должен быть в конфиге: правила хуков не пишут руками, их даёт пакет.",
+            },
+            {
+              type: "h2",
+              text: "Скрипт lint",
+            },
+            {
+              type: "p",
+              text: 'В `package.json` в `scripts` добавьте `"lint": "eslint ."`. Запустите `npm run lint` и поправьте то, на что он орёт. Проверка на PR смотрит, что скрипт есть; зелёный прогон — ваша ответственность перед ментором.',
+            },
+            {
+              type: "h2",
+              text: "README проекта",
+            },
+            {
+              type: "p",
+              text: "В корне напишите `README.md` о **вашем** приложении, не копируйте шаблон. Минимум: что это за проект, стек (React, JavaScript, Vite, ESLint), как установить и запустить (`npm install`, `npm run dev`).",
+            },
+            {
+              type: "p",
+              text: "Перед пушем локально: `node fe-checks/module-1.mjs`. На PR GitHub Actions прогоняет проверки модуля по имени ветки (`module_1`, позже `module_2` и дальше).",
+            },
+          ],
+          work: {
+            type: "homework",
+            title: "Сдать работу",
+            branch: "module_1",
           },
         },
       ],

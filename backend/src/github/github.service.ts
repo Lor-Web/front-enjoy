@@ -69,20 +69,41 @@ export class GithubService {
     );
   }
 
+  async getRepo(owner: string, name: string) {
+    this.requireRepoCreate();
+    return this.request<GithubRepo | null>(`/repos/${owner}/${name}`, {
+      token: this.orgToken(),
+      missing: "null",
+    });
+  }
+
   async inviteCollaborator(input: {
     owner: string;
     repo: string;
     username: string;
   }) {
     this.requireRepoCreate();
-    await this.request(
-      `/repos/${input.owner}/${input.repo}/collaborators/${input.username}`,
-      {
-        token: this.orgToken(),
-        method: "PUT",
-        body: { permission: "push" },
-      },
-    );
+    if (input.owner.toLowerCase() === input.username.toLowerCase()) {
+      return;
+    }
+    try {
+      await this.request(
+        `/repos/${input.owner}/${input.repo}/collaborators/${input.username}`,
+        {
+          token: this.orgToken(),
+          method: "PUT",
+          body: { permission: "push" },
+        },
+      );
+    } catch (error) {
+      if (
+        error instanceof BadGatewayException &&
+        /already|exists|collaborator/i.test(String(error.message))
+      ) {
+        return;
+      }
+      throw error;
+    }
   }
 
   frontendUrl() {
@@ -134,6 +155,7 @@ export class GithubService {
       token: string;
       method?: string;
       body?: unknown;
+      missing?: "null";
     },
   ): Promise<T> {
     const response = await fetch(`https://api.github.com${path}`, {
@@ -148,6 +170,9 @@ export class GithubService {
     });
     if (response.status === 204) {
       return undefined as T;
+    }
+    if (response.status === 404 && options.missing === "null") {
+      return null as T;
     }
     const data = (await response.json().catch(() => null)) as
       | { message?: string }

@@ -27,6 +27,11 @@ export type CourseWork =
       type: "task";
       title: string;
       criteria: string[];
+    }
+  | {
+      type: "homework";
+      title: string;
+      branch: string;
     };
 
 export type CourseBlock =

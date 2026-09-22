@@ -14,6 +14,7 @@ import {
   useCourse,
   useCourseProgress,
 } from "@/entities/course";
+import { HomeworkPanel } from "@/features/submit-homework";
 import { routes } from "@/shared/config/routes";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -149,6 +150,8 @@ export function CourseSectionPage() {
       }
     >
       <LessonArticle
+        courseSlug={course.slug}
+        moduleSlug={module.slug}
         moduleTitle={module.title}
         section={section}
         done={done}
@@ -160,27 +163,51 @@ export function CourseSectionPage() {
 }
 
 function LessonArticle({
+  courseSlug,
+  moduleSlug,
   moduleTitle,
   section,
   done,
   savedAnswers,
   onPass,
 }: {
+  courseSlug: string;
+  moduleSlug: string;
   moduleTitle: string;
   section: CourseSection;
   done: boolean;
   savedAnswers: number[] | null;
   onPass: (answers?: number[]) => void;
 }) {
+  const homework = section.work?.type === "homework" ? section.work : null;
+
   return (
     <article className="mx-auto max-w-2xl">
       <p className="text-muted-foreground mb-3 text-sm">{moduleTitle}</p>
-      <EstimatedTime minutes={estimateCourseSectionMinutes(section)} />
+      <EstimatedTime
+        minutes={estimateCourseSectionMinutes(section)}
+        purpose={homework ? "solving" : "reading"}
+      />
       <h1 className="mb-6 text-3xl sm:text-4xl">{section.title}</h1>
+      {homework ? (
+        <HomeworkPanel
+          courseSlug={courseSlug}
+          moduleSlug={moduleSlug}
+          branch={homework.branch}
+          done={done}
+          onPass={onPass}
+        />
+      ) : null}
       {section.body.map((block) => (
         <CourseBlockView key={blockKey(block)} block={block} />
       ))}
-      {section.work ? (
+      {homework ? (
+        done ? (
+          <div className="mt-10">
+            <PassedBanner />
+          </div>
+        ) : null
+      ) : section.work ? (
         <div className="mt-10 border-t pt-8">
           <SectionWork
             key={sectionKey("work", section.slug)}
@@ -263,7 +290,10 @@ function SectionWork({
       />
     );
   }
-  return <TaskWork work={work} done={done} onPass={onPass} />;
+  if (work.type === "task") {
+    return <TaskWork work={work} done={done} onPass={onPass} />;
+  }
+  return null;
 }
 
 function QuizWork({
@@ -427,9 +457,10 @@ function TaskWork({
                 htmlFor={id}
                 className={cn(
                   "flex items-start gap-3 rounded-lg border px-3 py-2.5 text-sm leading-6 transition-colors",
-                  done
-                    ? "border-border cursor-default"
-                    : "border-border hover:bg-accent/40 cursor-pointer",
+                  done ? "cursor-default" : "cursor-pointer",
+                  ticks[index]
+                    ? "border-primary/70 bg-primary/15 dark:border-primary dark:bg-primary/20"
+                    : "border-border hover:bg-accent/40",
                 )}
               >
                 <Checkbox

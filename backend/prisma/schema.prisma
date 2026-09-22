@@ -29,9 +29,11 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  lessonReads          LessonRead[]
-  quizProgress         QuizProgress[]
-  courseRepositories   CourseRepository[]
+  lessonReads              LessonRead[]
+  quizProgress             QuizProgress[]
+  courseRepositories       CourseRepository[]
+  courseHomeworkSubmissions CourseHomeworkSubmission[]
+  homeworkReviews          CourseHomeworkSubmission[] @relation("HomeworkReviewer")
   mentorshipsAsMentor  Mentorship[]       @relation("Mentor")
   mentorshipsAsStudent Mentorship[]       @relation("Student")
   ratingsGiven         Rating[]           @relation("RatingFrom")
@@ -50,6 +52,21 @@ model CourseRepository {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseSlug])
+}
+
+model CourseHomeworkSubmission {
+  id          String   @id @default(cuid())
+  userId      String
+  courseSlug  String
+  moduleSlug  String
+  prUrl       String
+  mentorId    String?
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mentor      User?    @relation("HomeworkReviewer", fields: [mentorId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, courseSlug, moduleSlug])
 }
 
 model LessonRead {

@@ -14,7 +14,8 @@
       "!backend/src/.gitkeep",
       "!**/generated",
       "!**/prisma/migrations",
-      "!.husky"
+      "!.husky",
+      "!templates"
     ]
   },
   "formatter": {

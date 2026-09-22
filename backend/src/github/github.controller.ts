@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -15,11 +16,13 @@ import { CurrentUser } from "../auth/current-user.decorator";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { PrismaService } from "../prisma/prisma.service";
 import { toMeProfile } from "../users/profile";
+import { ConnectGithubDto, safeNextPath } from "./dto/connect-github.dto";
 import { GithubService } from "./github.service";
 
 type LinkState = {
   sub: string;
   purpose: "github-link";
+  next?: string;
 };
 
 @Controller("auth/github")
@@ -32,14 +35,22 @@ export class GithubController {
 
   @Post("connect")
   @UseGuards(JwtAuthGuard)
-  async connect(@CurrentUser() user: { id: string }) {
+  async connect(
+    @CurrentUser() user: { id: string },
+    @Body() dto: ConnectGithubDto,
+  ) {
     if (!this.github.oauthConfigured()) {
       throw new ServiceUnavailableException(
         "Подключение GitHub пока не настроено",
       );
     }
+    const next = safeNextPath(dto?.next) ?? undefined;
     const state = await this.jwt.signAsync(
-      { sub: user.id, purpose: "github-link" } satisfies LinkState,
+      {
+        sub: user.id,
+        purpose: "github-link",
+        ...(next ? { next } : {}),
+      } satisfies LinkState,
       { expiresIn: "10m" },
     );
     return { url: this.github.authorizeUrl(state) };
@@ -53,12 +64,14 @@ export class GithubController {
     @Res() response: Response,
   ) {
     const frontend = this.github.frontendUrl();
+    const next = await this.nextFromState(state);
+
     if (error === "access_denied") {
-      response.redirect(`${frontend}/me?github=denied`);
+      this.redirectGithub(response, frontend, next, "denied");
       return;
     }
     if (!code || !state) {
-      response.redirect(`${frontend}/me?github=error`);
+      this.redirectGithub(response, frontend, next, "error");
       return;
     }
 
@@ -73,7 +86,7 @@ export class GithubController {
         where: { githubId, NOT: { id: payload.sub } },
       });
       if (taken) {
-        response.redirect(`${frontend}/me?github=taken`);
+        this.redirectGithub(response, frontend, payload.next, "taken");
         return;
       }
 
@@ -85,9 +98,9 @@ export class GithubController {
           githubLinkedAt: new Date(),
         },
       });
-      response.redirect(`${frontend}/me?github=linked`);
+      this.redirectGithub(response, frontend, payload.next, "linked");
     } catch {
-      response.redirect(`${frontend}/me?github=error`);
+      this.redirectGithub(response, frontend, next, "error");
     }
   }
 
@@ -103,5 +116,29 @@ export class GithubController {
       },
     });
     return await toMeProfile(this.prisma, updated);
+  }
+
+  private async nextFromState(state: string | undefined) {
+    if (!state) {
+      return null;
+    }
+    try {
+      const payload = await this.jwt.verifyAsync<LinkState>(state);
+      return payload.purpose === "github-link" ? payload.next : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private redirectGithub(
+    response: Response,
+    frontend: string,
+    next: string | undefined | null,
+    status: string,
+  ) {
+    const path = safeNextPath(next ?? undefined) ?? "/me";
+    const url = new URL(path, `${frontend.replace(/\/$/, "")}/`);
+    url.searchParams.set("github", status);
+    response.redirect(url.toString());
   }
 }

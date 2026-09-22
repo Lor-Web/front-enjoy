@@ -9,8 +9,11 @@ export type CourseRepository = {
   createdAt: string;
 };
 
-export async function startGithubConnect() {
-  const { data } = await api.post<{ url: string }>("/auth/github/connect");
+export async function startGithubConnect(next?: string) {
+  const { data } = await api.post<{ url: string }>(
+    "/auth/github/connect",
+    next ? { next } : {},
+  );
   return data.url;
 }
 
@@ -20,7 +23,7 @@ export async function disconnectGithub() {
 }
 
 export async function fetchCourseRepository(slug: string) {
-  const { data } = await api.get<CourseRepository>(
+  const { data } = await api.get<CourseRepository | null>(
     `/courses/${slug}/repository`,
   );
   return data;

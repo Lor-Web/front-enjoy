@@ -197,6 +197,9 @@ export function estimateCourseSectionMinutes(section: CourseSection) {
   if (section.work?.type === "task") {
     minutes += Math.max(2, section.work.criteria.length);
   }
+  if (section.work?.type === "homework") {
+    minutes += 40;
+  }
   return minutes;
 }
 
