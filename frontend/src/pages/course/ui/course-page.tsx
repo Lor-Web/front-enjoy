@@ -1,35 +1,37 @@
-import { BadgeCheck, Check, ChevronDown, Clock, FileText } from "lucide-react";
-import { Link, useParams } from "react-router";
+import { useAtomValue } from "jotai";
+import { Check, ChevronDown, Lock } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router";
 import {
   COURSE_TECHS,
-  CourseRating,
+  type Course,
   CourseTechIcon,
+  completedCount,
   courseTechTitle,
-  formatCourses,
-  formatHours,
-  formatLectures,
-  formatPrice,
+  firstSection,
+  formatModules,
+  formatProgress,
   formatSections,
-  formatStudents,
-  lectureCount,
-  sectionMinutes,
+  isModuleUnlocked,
+  isSectionUnlocked,
+  nextIncompleteSection,
+  progressPercent,
+  sectionCount,
   useCourse,
+  useCourseProgress,
 } from "@/entities/course";
 import { gradeLabel } from "@/entities/user";
-import { CourseRepoCta } from "@/features/connect-github";
+import { tokenAtom } from "@/features/auth";
 import { routes } from "@/shared/config/routes";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { Progress } from "@/shared/ui/progress";
 import { AppShell } from "@/widgets/app-shell";
-
-const BADGE_LABEL = {
-  bestseller: "Бестселлер",
-  new: "Новый",
-} as const;
 
 export function CoursePage() {
   const { slug = "" } = useParams();
+  const token = useAtomValue(tokenAtom);
   const { data: course, isPending, isError } = useCourse(slug);
+  const { completed, isDone, started } = useCourseProgress(slug);
 
   if (isPending) {
     return (
@@ -54,11 +56,6 @@ export function CoursePage() {
   }
 
   const tech = COURSE_TECHS.find((item) => item.id === course.tech);
-  const lectures = lectureCount(course);
-  const updated = new Date(course.updatedAt).toLocaleDateString("ru-RU", {
-    month: "long",
-    year: "numeric",
-  });
 
   return (
     <AppShell>
@@ -87,9 +84,6 @@ export function CoursePage() {
                   <CourseTechIcon id={course.tech} className="size-4" />
                   {courseTechTitle(course.tech)}
                 </span>
-                {course.badge ? (
-                  <Badge variant="secondary">{BADGE_LABEL[course.badge]}</Badge>
-                ) : null}
                 {course.publisher === "platform" ? (
                   <Badge variant="secondary">Front Enjoy</Badge>
                 ) : null}
@@ -100,31 +94,17 @@ export function CoursePage() {
               <p className="mt-3 text-[17px] leading-7 text-zinc-300">
                 {course.subtitle}
               </p>
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-                <CourseRating
-                  value={course.rating}
-                  count={course.ratingCount}
-                  className="[&_span:first-child]:text-amber-400"
-                />
-                <span className="text-zinc-400">
-                  {formatStudents(course.students)}
-                </span>
-              </div>
               <p className="mt-3 text-sm text-zinc-300">
-                Автор: {course.instructor.name}
+                Автор: {course.authorName}
               </p>
               <p className="mt-1 text-sm text-zinc-400">
-                Обновлён {updated} · {course.language} ·{" "}
-                {gradeLabel(course.grade)}
+                {course.language} · {gradeLabel(course.grade)} ·{" "}
+                {formatModules(course.modules.length)} ·{" "}
+                {formatSections(sectionCount(course))}
               </p>
             </div>
 
-            <BuyCard
-              className="mt-6 lg:hidden"
-              slug={course.slug}
-              priceRub={course.priceRub}
-              includes={course.includes}
-            />
+            <StartCard className="mt-6 lg:hidden" course={course} />
 
             <section className="mt-10">
               <h2 className="mb-4 text-xl font-semibold">Чему вы научитесь</h2>
@@ -139,49 +119,91 @@ export function CoursePage() {
             </section>
 
             <section className="mt-10">
-              <h2 className="mb-1 text-xl font-semibold">Содержание курса</h2>
+              <h2 className="mb-1 text-xl font-semibold">Программа</h2>
               <p className="text-muted-foreground mb-4 text-sm">
-                {formatSections(course.sections.length)} ·{" "}
-                {formatLectures(lectures)} · {formatHours(course.hours)}
+                Урок открывается после предыдущего. Модуль — после предыдущего
+                модуля. В конце урока может быть квиз, задача или ничего.
               </p>
               <div className="divide-y rounded-md border">
-                {course.sections.map((section, index) => (
-                  <details
-                    key={section.title}
-                    open={index === 0}
-                    className="group"
-                  >
-                    <summary className="hover:bg-accent/50 flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
-                      <ChevronDown className="text-muted-foreground size-4 shrink-0 transition-transform group-open:rotate-180" />
-                      <span className="flex-1">{section.title}</span>
-                      <span className="text-muted-foreground font-normal">
-                        {section.lectures.length} ·{" "}
-                        {sectionMinutes(section.lectures)} мин
-                      </span>
-                    </summary>
-                    <ul className="border-t">
-                      {section.lectures.map((lecture) => (
-                        <li
-                          key={lecture.title}
-                          className="text-muted-foreground flex items-center gap-2 px-4 py-2.5 pl-10 text-sm"
-                        >
-                          <FileText className="size-3.5 shrink-0" />
-                          <span className="flex-1 text-foreground">
-                            {lecture.title}
-                            {lecture.preview ? (
-                              <span className="text-primary ml-2 text-xs">
-                                обзор
-                              </span>
-                            ) : null}
-                          </span>
-                          <span className="tabular-nums">
-                            {lecture.minutes} мин
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                ))}
+                {course.modules.map((module) => {
+                  const moduleOpen = isModuleUnlocked(
+                    course,
+                    module.slug,
+                    completed,
+                  );
+                  return (
+                    <details
+                      key={module.slug}
+                      open={moduleOpen}
+                      className="group"
+                    >
+                      <summary className="hover:bg-accent/50 flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+                        {moduleOpen ? (
+                          <ChevronDown className="text-muted-foreground size-4 shrink-0 transition-transform group-open:rotate-180" />
+                        ) : (
+                          <Lock className="text-muted-foreground size-4 shrink-0" />
+                        )}
+                        <span className="flex-1">{module.title}</span>
+                        <span className="text-muted-foreground font-normal">
+                          {formatSections(module.sections.length)}
+                        </span>
+                      </summary>
+                      <p className="text-muted-foreground border-t px-4 py-2 pl-10 text-sm leading-6">
+                        {module.summary}
+                      </p>
+                      {module.sections.length === 0 ? (
+                        <p className="text-muted-foreground px-4 pb-3 pl-10 text-sm">
+                          Уроки появятся, когда закроете предыдущий модуль и мы
+                          их опубликуем.
+                        </p>
+                      ) : (
+                        <ul className="border-t">
+                          {module.sections.map((section) => {
+                            const open = isSectionUnlocked(
+                              course,
+                              module.slug,
+                              section.slug,
+                              completed,
+                            );
+                            const done = isDone(module.slug, section.slug);
+                            const row = (
+                              <>
+                                {done ? (
+                                  <Check className="text-primary size-3.5 shrink-0" />
+                                ) : open ? null : (
+                                  <Lock className="size-3.5 shrink-0" />
+                                )}
+                                <span className="flex-1 text-foreground">
+                                  {section.title}
+                                </span>
+                              </>
+                            );
+                            return (
+                              <li key={section.slug}>
+                                {open && started && token ? (
+                                  <Link
+                                    to={routes.courseSection(
+                                      course.slug,
+                                      module.slug,
+                                      section.slug,
+                                    )}
+                                    className="hover:bg-accent/40 text-muted-foreground flex items-center gap-2 px-4 py-2.5 pl-10 text-sm"
+                                  >
+                                    {row}
+                                  </Link>
+                                ) : (
+                                  <p className="text-muted-foreground flex items-center gap-2 px-4 py-2.5 pl-10 text-sm">
+                                    {row}
+                                  </p>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </details>
+                  );
+                })}
               </div>
             </section>
 
@@ -205,48 +227,10 @@ export function CoursePage() {
                 </p>
               ))}
             </section>
-
-            <section className="mt-10">
-              <h2 className="mb-4 text-xl font-semibold">Автор</h2>
-              <p className="text-lg font-medium">{course.instructor.name}</p>
-              <p className="text-muted-foreground text-sm">
-                {course.instructor.role}
-              </p>
-              <p className="text-muted-foreground mt-2 text-sm">
-                Рейтинг {course.instructor.rating.toFixed(1)} ·{" "}
-                {formatCourses(course.instructor.courses)} ·{" "}
-                {formatStudents(course.instructor.students)}
-              </p>
-              <p className="mt-3 text-[17px] leading-7">
-                {course.instructor.bio}
-              </p>
-            </section>
-
-            <section className="mt-10">
-              <h2 className="mb-4 text-xl font-semibold">Отзывы</h2>
-              <ul className="space-y-6">
-                {course.reviews.map((review) => (
-                  <li key={`${review.name}-${review.date}`}>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium">{review.name}</p>
-                      <CourseRating value={review.rating} />
-                    </div>
-                    <p className="text-muted-foreground mt-0.5 text-xs">
-                      {new Date(review.date).toLocaleDateString("ru-RU")}
-                    </p>
-                    <p className="mt-2 text-sm leading-6">{review.text}</p>
-                  </li>
-                ))}
-              </ul>
-            </section>
           </div>
 
           <aside className="sticky top-20 hidden lg:block">
-            <BuyCard
-              slug={course.slug}
-              priceRub={course.priceRub}
-              includes={course.includes}
-            />
+            <StartCard course={course} />
           </aside>
         </div>
       </div>
@@ -254,38 +238,70 @@ export function CoursePage() {
   );
 }
 
-function BuyCard({
-  slug,
-  priceRub,
-  includes,
+function StartCard({
+  course,
   className,
 }: {
-  slug: string;
-  priceRub: number;
-  includes: string[];
+  course: Course;
   className?: string;
 }) {
+  const token = useAtomValue(tokenAtom);
+  const navigate = useNavigate();
+  const { completed, started, start } = useCourseProgress(course.slug);
+  const first = firstSection(course);
+  const next = nextIncompleteSection(course, completed);
+  const total = sectionCount(course);
+  const done = completedCount(course, completed);
+  const firstHref = first
+    ? routes.courseSection(course.slug, first.module.slug, first.section.slug)
+    : null;
+  const continueHref = next
+    ? routes.courseSection(course.slug, next.module.slug, next.section.slug)
+    : null;
+
   return (
     <div className={`rounded-xl border p-5 shadow-sm ${className ?? ""}`}>
-      <p className="text-3xl font-semibold tabular-nums">
-        {formatPrice(priceRub)}
-      </p>
-      <CourseRepoCta slug={slug} />
-      <p className="text-muted-foreground mt-2 text-center text-xs">
-        Репозиторий создаётся из шаблона курса в GitHub-организации Front Enjoy
-      </p>
-      <ul className="mt-5 space-y-2">
-        {includes.map((item) => (
-          <li key={item} className="flex items-start gap-2 text-sm leading-5">
-            {item.includes("час") ? (
-              <Clock className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-            ) : (
-              <BadgeCheck className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-            )}
-            {item}
-          </li>
-        ))}
-      </ul>
+      {token && started && total > 0 ? (
+        <div className="mb-4 space-y-2">
+          <p className="text-sm font-medium">{formatProgress(done, total)}</p>
+          <Progress value={progressPercent(course, completed)} />
+        </div>
+      ) : null}
+      {!token ? (
+        firstHref ? (
+          <Button asChild className="w-full">
+            <Link to={routes.login} state={{ from: firstHref }}>
+              Войти, чтобы начать
+            </Link>
+          </Button>
+        ) : (
+          <p className="text-muted-foreground text-center text-sm">
+            Уроки ещё не опубликованы.
+          </p>
+        )
+      ) : !started ? (
+        <Button
+          className="w-full"
+          disabled={!firstHref}
+          onClick={() => {
+            if (!firstHref) {
+              return;
+            }
+            start();
+            navigate(firstHref);
+          }}
+        >
+          Начать курс
+        </Button>
+      ) : continueHref ? (
+        <Button asChild className="w-full">
+          <Link to={continueHref}>Продолжить</Link>
+        </Button>
+      ) : (
+        <p className="text-muted-foreground text-center text-sm">
+          Открытые уроки пройдены. Следующий модуль ещё закрыт.
+        </p>
+      )}
     </div>
   );
 }

@@ -1,32 +1,38 @@
 export { useCourse, useCourses } from "./api/course-queries";
 export {
+  completedCount,
   courseTechTitle,
+  estimateCourseSectionMinutes,
   filterCourses,
+  findModule,
+  findSection,
+  firstSection,
+  flattenSections,
   formatCourses,
-  formatHours,
-  formatLectures,
-  formatPrice,
-  formatReviews,
+  formatModules,
+  formatProgress,
   formatSections,
-  formatStudents,
-  lectureCount,
-  sectionMinutes,
+  isModuleUnlocked,
+  isSectionUnlocked,
+  neighborSections,
+  nextIncompleteSection,
+  progressPercent,
+  sectionCount,
+  sectionKey,
 } from "./lib/course-format";
 export { COURSES } from "./model/courses";
 export type {
   Course,
+  CourseBlock,
   CourseFilters,
-  CoursePriceFilter,
+  CourseModule,
   CoursePublisher,
-  CourseRatingFilter,
+  CourseSection,
   CourseSort,
   CourseTechId,
+  CourseWork,
 } from "./model/types";
-export {
-  COURSE_TECHS,
-  PLATFORM_AUTHOR_ID,
-  PLATFORM_INSTRUCTOR,
-} from "./model/types";
+export { COURSE_TECHS, PLATFORM_AUTHOR_ID } from "./model/types";
+export { useCourseProgress } from "./model/use-course-progress";
 export { CourseCard } from "./ui/course-card";
-export { CourseRating } from "./ui/course-rating";
 export { CourseTechIcon } from "./ui/course-tech-icon";

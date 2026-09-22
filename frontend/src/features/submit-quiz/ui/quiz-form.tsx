@@ -85,18 +85,18 @@ export function QuizForm({ quiz, onPassed }: QuizFormProps) {
                 return (
                   <div
                     key={option.id}
-                    className={`flex items-start gap-3 rounded-md border px-3 py-2.5 text-sm leading-6 ${
+                    className={`flex items-start gap-3 rounded-lg border px-3 py-2.5 text-sm leading-6 transition-colors ${
                       showMark && isCorrectOption
                         ? "border-primary bg-primary/8"
                         : showMark && isSelected && !isCorrectOption
                           ? "border-destructive/50 bg-destructive/5"
-                          : "border-border"
+                          : "border-border hover:bg-accent/40"
                     }`}
                   >
                     <RadioGroupItem
                       id={optionId}
                       value={option.id}
-                      className="mt-1"
+                      className="mt-0.5"
                       disabled={submitted}
                     />
                     <label htmlFor={optionId} className="cursor-pointer">

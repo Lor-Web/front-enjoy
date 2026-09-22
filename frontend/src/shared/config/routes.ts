@@ -53,6 +53,8 @@ export const routes = {
   mentors: "/users?mentors=1",
   courses: "/courses",
   course: (slug: string) => `/courses/${slug}`,
+  courseSection: (course: string, module: string, section: string) =>
+    `/courses/${course}/${module}/${section}`,
   profile: (slug: string) => `/u/${slug}`,
   me: "/me",
   cabinet: "/cabinet",

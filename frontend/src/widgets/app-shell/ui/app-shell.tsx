@@ -7,9 +7,17 @@ type AppShellProps = {
   children: ReactNode;
   sidebar?: ReactNode;
   footer?: ReactNode;
+  navTitle?: string;
+  navDescription?: string;
 };
 
-export function AppShell({ children, sidebar, footer }: AppShellProps) {
+export function AppShell({
+  children,
+  sidebar,
+  footer,
+  navTitle,
+  navDescription,
+}: AppShellProps) {
   return (
     <div className="flex min-h-svh flex-col">
       <a
@@ -18,7 +26,11 @@ export function AppShell({ children, sidebar, footer }: AppShellProps) {
       >
         К содержанию
       </a>
-      <Header mobileNav={sidebar} />
+      <Header
+        mobileNav={sidebar}
+        navTitle={navTitle}
+        navDescription={navDescription}
+      />
       <div className="mx-auto flex w-full max-w-6xl flex-1">
         {sidebar ? (
           <aside className="sticky top-14 hidden h-[calc(100svh-3.5rem)] w-72 shrink-0 overflow-y-auto border-r lg:block">

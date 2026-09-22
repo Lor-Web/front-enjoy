@@ -5,9 +5,7 @@ import {
   COURSE_TECHS,
   CourseCard,
   type CourseFilters,
-  type CoursePriceFilter,
   type CoursePublisher,
-  type CourseRatingFilter,
   type CourseSort,
   type CourseTechId,
   filterCourses,
@@ -17,13 +15,6 @@ import {
 import { GRADE_OPTIONS, type Grade } from "@/entities/user";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -35,9 +26,7 @@ import { AppShell } from "@/widgets/app-shell";
 import { CourseFiltersForm, SORT_OPTIONS } from "./course-filters";
 
 const SORTS = new Set<CourseSort>(SORT_OPTIONS.map((item) => item.value));
-const PRICES = new Set<CoursePriceFilter>(["free", "paid"]);
 const PUBLISHERS = new Set<CoursePublisher>(["platform", "author"]);
-const RATINGS = new Set<CourseRatingFilter>(["3.5", "4", "4.5"]);
 const TECHS = new Set<CourseTechId>(COURSE_TECHS.map((item) => item.id));
 const GRADES = new Set<Grade>(GRADE_OPTIONS.map((item) => item.value));
 
@@ -45,9 +34,7 @@ function readFilters(params: URLSearchParams): CourseFilters {
   const grade = params.get("grade") ?? "";
   const tech = params.get("tech") ?? "";
   const publisher = params.get("by") ?? "";
-  const price = params.get("price") ?? "";
-  const rating = params.get("rating") ?? "";
-  const sort = params.get("sort") ?? "popular";
+  const sort = params.get("sort") ?? "title";
   return {
     q: params.get("q") ?? "",
     grade: GRADES.has(grade as Grade) ? (grade as Grade) : "",
@@ -55,13 +42,7 @@ function readFilters(params: URLSearchParams): CourseFilters {
     publisher: PUBLISHERS.has(publisher as CoursePublisher)
       ? (publisher as CoursePublisher)
       : "",
-    price: PRICES.has(price as CoursePriceFilter)
-      ? (price as CoursePriceFilter)
-      : "",
-    rating: RATINGS.has(rating as CourseRatingFilter)
-      ? (rating as CourseRatingFilter)
-      : "",
-    sort: SORTS.has(sort as CourseSort) ? (sort as CourseSort) : "popular",
+    sort: SORTS.has(sort as CourseSort) ? (sort as CourseSort) : "title",
   };
 }
 
@@ -76,13 +57,13 @@ function writeFilters(
       setOrDelete(next, "grade", filters.grade);
       setOrDelete(next, "tech", filters.tech);
       setOrDelete(next, "by", filters.publisher);
-      setOrDelete(next, "price", filters.price);
-      setOrDelete(next, "rating", filters.rating);
-      if (filters.sort === "popular") {
+      if (filters.sort === "title") {
         next.delete("sort");
       } else {
         next.set("sort", filters.sort);
       }
+      next.delete("price");
+      next.delete("rating");
       return next;
     },
     { replace: true },
@@ -100,7 +81,7 @@ function setOrDelete(params: URLSearchParams, key: string, value: string) {
 export function CoursesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const filters = readFilters(searchParams);
-  const { q, grade, tech, publisher, price, rating, sort } = filters;
+  const { q, grade, tech, publisher, sort } = filters;
   const [qInput, setQInput] = useState(q);
   const { data: courses = [], isPending } = useCourses();
 
@@ -119,21 +100,15 @@ export function CoursesPage() {
         grade,
         tech,
         publisher,
-        price,
-        rating,
         sort,
       });
     }, 300);
     return () => window.clearTimeout(timer);
-  }, [qInput, q, grade, tech, publisher, price, rating, sort, setSearchParams]);
+  }, [qInput, q, grade, tech, publisher, sort, setSearchParams]);
 
   const visible = filterCourses(courses, filters);
   const hasExtraFilters = Boolean(
-    filters.grade ||
-      filters.tech ||
-      filters.publisher ||
-      filters.price ||
-      filters.rating,
+    filters.grade || filters.tech || filters.publisher,
   );
 
   return (
@@ -141,8 +116,8 @@ export function CoursesPage() {
       <div className="mx-auto max-w-5xl">
         <h1 className="mb-3 text-3xl sm:text-4xl">Курсы</h1>
         <p className="text-muted-foreground mb-6 text-[17px] leading-7">
-          Практические текстовые программы с домашними заданиями. Документация
-          остаётся справочником — курсы ведут от задачи к задаче.
+          Практические текстовые программы. Документация остаётся справочником —
+          курсы ведут от задачи к задаче.
         </p>
 
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -151,34 +126,10 @@ export function CoursesPage() {
               icon={Search}
               value={qInput}
               onChange={(event) => setQInput(event.target.value)}
-              placeholder="Название курса или преподаватель"
+              placeholder="Название курса"
               aria-label="Поиск курсов по имени"
             />
           </div>
-          <Select
-            value={filters.sort}
-            onValueChange={(value) => {
-              writeFilters(setSearchParams, {
-                ...filters,
-                sort: value as CourseSort,
-              });
-            }}
-          >
-            <SelectTrigger
-              className="sm:w-52"
-              size="sm"
-              aria-label="Сортировка"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SORT_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="sm" className="lg:hidden">
@@ -218,7 +169,7 @@ export function CoursesPage() {
             </p>
             {isPending ? null : visible.length === 0 ? (
               <p className="text-muted-foreground border-y py-10 text-sm">
-                Нет курсов по этим фильтрам. Сбросьте грейд, автора или рейтинг.
+                Нет курсов по этим фильтрам. Сбросьте грейд или автора.
               </p>
             ) : (
               <ul className="divide-y border-y">

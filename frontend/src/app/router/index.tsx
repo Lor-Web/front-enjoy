@@ -9,7 +9,7 @@ import {
 import { RequireAuth } from "@/features/auth";
 import { CabinetPage, StudentProgressPage } from "@/pages/cabinet";
 import { CatalogPage } from "@/pages/catalog";
-import { CoursePage } from "@/pages/course";
+import { CoursePage, CourseSectionPage } from "@/pages/course";
 import { CoursesPage } from "@/pages/courses";
 import { DocsPage, JavascriptPage } from "@/pages/docs";
 import { HomePage } from "@/pages/home";
@@ -35,6 +35,14 @@ export function AppRouter() {
         <Route path="/docs/react/:slug" element={<LessonPage />} />
         <Route path="/docs/javascript" element={<JavascriptPage />} />
         <Route path="/courses" element={<CoursesPage />} />
+        <Route
+          path="/courses/:slug/:moduleSlug/:sectionSlug"
+          element={
+            <RequireAuth>
+              <CourseSectionPage />
+            </RequireAuth>
+          }
+        />
         <Route path="/courses/:slug" element={<CoursePage />} />
         <Route path="/learn/react" element={<RedirectLearnToDocs />} />
         <Route path="/learn/react/*" element={<RedirectLearnToDocs />} />

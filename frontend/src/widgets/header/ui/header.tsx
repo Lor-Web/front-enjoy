@@ -17,9 +17,15 @@ import { DocsNav } from "./docs-nav";
 
 type HeaderProps = {
   mobileNav?: ReactNode;
+  navTitle?: string;
+  navDescription?: string;
 };
 
-export function Header({ mobileNav }: HeaderProps) {
+export function Header({
+  mobileNav,
+  navTitle = "Уроки",
+  navDescription = "Навигация по треку React",
+}: HeaderProps) {
   return (
     <header className="bg-background/90 sticky top-0 z-40 border-b backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 overflow-hidden px-4 sm:px-6">
@@ -38,8 +44,8 @@ export function Header({ mobileNav }: HeaderProps) {
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
               <SheetHeader className="border-b">
-                <SheetTitle>Уроки</SheetTitle>
-                <SheetDescription>Навигация по треку React</SheetDescription>
+                <SheetTitle>{navTitle}</SheetTitle>
+                <SheetDescription>{navDescription}</SheetDescription>
               </SheetHeader>
               <div className="min-h-0 flex-1 overflow-y-auto">{mobileNav}</div>
             </SheetContent>

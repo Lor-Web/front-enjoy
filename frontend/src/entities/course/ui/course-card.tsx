@@ -4,19 +4,12 @@ import { routes } from "@/shared/config/routes";
 import { Badge } from "@/shared/ui/badge";
 import {
   courseTechTitle,
-  formatHours,
-  formatLectures,
-  formatPrice,
-  lectureCount,
+  formatModules,
+  formatSections,
+  sectionCount,
 } from "../lib/course-format";
 import { COURSE_TECHS, type Course } from "../model/types";
-import { CourseRating } from "./course-rating";
 import { CourseTechIcon } from "./course-tech-icon";
-
-const BADGE_LABEL = {
-  bestseller: "Бестселлер",
-  new: "Новый",
-} as const;
 
 type CourseCardProps = {
   course: Course;
@@ -24,7 +17,6 @@ type CourseCardProps = {
 
 export function CourseCard({ course }: CourseCardProps) {
   const tech = COURSE_TECHS.find((item) => item.id === course.tech);
-  const lectures = lectureCount(course);
 
   return (
     <Link
@@ -48,9 +40,6 @@ export function CourseCard({ course }: CourseCardProps) {
           <h2 className="text-[17px] leading-6 font-semibold">
             {course.title}
           </h2>
-          {course.badge ? (
-            <Badge variant="secondary">{BADGE_LABEL[course.badge]}</Badge>
-          ) : null}
           {course.publisher === "platform" ? (
             <Badge variant="secondary">Front Enjoy</Badge>
           ) : null}
@@ -59,19 +48,16 @@ export function CourseCard({ course }: CourseCardProps) {
           {course.subtitle}
         </p>
         <p className="text-muted-foreground mt-1 text-xs">
-          {course.instructor.name} · {courseTechTitle(course.tech)}
+          {course.authorName} · {courseTechTitle(course.tech)}
         </p>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <CourseRating value={course.rating} count={course.ratingCount} />
+        <div className="mt-2">
           <GradeBadge grade={course.grade} />
         </div>
         <p className="text-muted-foreground mt-1 text-xs">
-          {formatHours(course.hours)} · {formatLectures(lectures)}
+          {formatModules(course.modules.length)} ·{" "}
+          {formatSections(sectionCount(course))}
         </p>
       </div>
-      <p className="text-base font-semibold tabular-nums sm:w-28 sm:text-right">
-        {formatPrice(course.priceRub)}
-      </p>
     </Link>
   );
 }

@@ -2,13 +2,12 @@ import type { ReactNode } from "react";
 import {
   COURSE_TECHS,
   type CourseFilters,
-  type CoursePriceFilter,
   type CoursePublisher,
-  type CourseRatingFilter,
   type CourseSort,
   type CourseTechId,
 } from "@/entities/course";
 import { GRADE_OPTIONS, type Grade } from "@/entities/user";
+import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
 
 type CourseFiltersFormProps = {
   filters: CourseFilters;
@@ -78,51 +77,12 @@ export function CourseFiltersForm({
           }
         />
       </FilterBlock>
-      <FilterBlock title="Цена">
-        <Choice
-          name={`${idPrefix}-price`}
-          value={filters.price || "all"}
-          options={[
-            { value: "all", label: "Любая" },
-            { value: "free", label: "Бесплатно" },
-            { value: "paid", label: "Платные" },
-          ]}
-          onChange={(value) =>
-            onChange({
-              ...filters,
-              price: value === "all" ? "" : (value as CoursePriceFilter),
-            })
-          }
-        />
-      </FilterBlock>
-      <FilterBlock title="Рейтинг">
-        <Choice
-          name={`${idPrefix}-rating`}
-          value={filters.rating || "all"}
-          options={[
-            { value: "all", label: "Любой" },
-            { value: "4.5", label: "От 4,5" },
-            { value: "4", label: "От 4,0" },
-            { value: "3.5", label: "От 3,5" },
-          ]}
-          onChange={(value) =>
-            onChange({
-              ...filters,
-              rating: value === "all" ? "" : (value as CourseRatingFilter),
-            })
-          }
-        />
-      </FilterBlock>
     </div>
   );
 }
 
 export const SORT_OPTIONS: Array<{ value: CourseSort; label: string }> = [
-  { value: "popular", label: "По популярности" },
-  { value: "rating", label: "По рейтингу" },
-  { value: "new", label: "Сначала новые" },
-  { value: "price-asc", label: "Сначала дешёвые" },
-  { value: "price-desc", label: "Сначала дорогие" },
+  { value: "title", label: "По названию" },
 ];
 
 function FilterBlock({
@@ -152,28 +112,20 @@ function Choice({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="space-y-1.5">
+    <RadioGroup value={value} onValueChange={onChange} className="gap-1.5">
       {options.map((option) => {
         const id = `${name}-${option.value}`;
         return (
           <label
             key={option.value}
             htmlFor={id}
-            className="flex cursor-pointer items-center gap-2 text-sm"
+            className="hover:bg-accent/50 flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm leading-5"
           >
-            <input
-              id={id}
-              type="radio"
-              name={name}
-              value={option.value}
-              checked={value === option.value}
-              onChange={() => onChange(option.value)}
-              className="accent-primary size-3.5"
-            />
+            <RadioGroupItem id={id} value={option.value} />
             {option.label}
           </label>
         );
       })}
-    </div>
+    </RadioGroup>
   );
 }

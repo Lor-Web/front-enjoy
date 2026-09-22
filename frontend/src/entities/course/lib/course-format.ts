@@ -1,13 +1,23 @@
-import { COURSE_TECHS, type Course, type CourseFilters } from "../model/types";
+import {
+  countWords,
+  estimateLessonMinutes,
+  estimateQuizMinutes,
+} from "@/shared/lib/reading-time";
+import {
+  COURSE_TECHS,
+  type Course,
+  type CourseFilters,
+  type CourseModule,
+  type CourseSection,
+} from "../model/types";
 
 export function filterCourses(courses: Course[], filters: CourseFilters) {
   const query = filters.q.trim().toLowerCase();
-  const minRating = filters.rating ? Number(filters.rating) : 0;
 
   const filtered = courses.filter((course) => {
     if (query) {
       const haystack =
-        `${course.title} ${course.subtitle} ${course.instructor.name}`.toLowerCase();
+        `${course.title} ${course.subtitle} ${course.authorName}`.toLowerCase();
       if (!haystack.includes(query)) {
         return false;
       }
@@ -21,67 +31,21 @@ export function filterCourses(courses: Course[], filters: CourseFilters) {
     if (filters.publisher && course.publisher !== filters.publisher) {
       return false;
     }
-    if (filters.price === "free" && course.priceRub !== 0) {
-      return false;
-    }
-    if (filters.price === "paid" && course.priceRub === 0) {
-      return false;
-    }
-    if (minRating && course.rating < minRating) {
-      return false;
-    }
     return true;
   });
 
-  return filtered.sort((a, b) => {
-    switch (filters.sort) {
-      case "rating":
-        return b.rating - a.rating;
-      case "new":
-        return b.updatedAt.localeCompare(a.updatedAt);
-      case "price-asc":
-        return a.priceRub - b.priceRub;
-      case "price-desc":
-        return b.priceRub - a.priceRub;
-      default:
-        return b.students - a.students;
-    }
-  });
+  return filtered.sort((a, b) => a.title.localeCompare(b.title, "ru"));
 }
 
-export function lectureCount(course: Course) {
-  return course.sections.reduce(
-    (sum, section) => sum + section.lectures.length,
+export function sectionCount(course: Course) {
+  return course.modules.reduce(
+    (sum, module) => sum + module.sections.length,
     0,
   );
 }
 
-export function sectionMinutes(lectures: { minutes: number }[]) {
-  return lectures.reduce((sum, lecture) => sum + lecture.minutes, 0);
-}
-
-export function formatPrice(priceRub: number) {
-  if (priceRub === 0) {
-    return "Бесплатно";
-  }
-  return `${priceRub.toLocaleString("ru-RU")} ₽`;
-}
-
-export function formatHours(hours: number) {
-  const rounded = Number.isInteger(hours) ? String(hours) : hours.toFixed(1);
-  return `${rounded} ч`;
-}
-
-export function formatStudents(count: number) {
-  return `${count.toLocaleString("ru-RU")} ${plural(count, "ученик", "ученика", "учеников")}`;
-}
-
-export function formatReviews(count: number) {
-  return plural(count, "оценка", "оценки", "оценок");
-}
-
-export function formatLectures(count: number) {
-  return `${count} ${plural(count, "лекция", "лекции", "лекций")}`;
+export function formatModules(count: number) {
+  return `${count} ${plural(count, "модуль", "модуля", "модулей")}`;
 }
 
 export function formatSections(count: number) {
@@ -94,6 +58,146 @@ export function formatCourses(count: number) {
 
 export function courseTechTitle(id: Course["tech"]) {
   return COURSE_TECHS.find((item) => item.id === id)?.title ?? id;
+}
+
+export function findModule(course: Course, moduleSlug: string) {
+  return course.modules.find((module) => module.slug === moduleSlug) ?? null;
+}
+
+export function findSection(module: CourseModule, sectionSlug: string) {
+  return (
+    module.sections.find((section) => section.slug === sectionSlug) ?? null
+  );
+}
+
+export function flattenSections(course: Course) {
+  return course.modules.flatMap((module) =>
+    module.sections.map((section) => ({ module, section })),
+  );
+}
+
+export function sectionKey(moduleSlug: string, sectionSlug: string) {
+  return `${moduleSlug}/${sectionSlug}`;
+}
+
+export function isModuleUnlocked(
+  course: Course,
+  moduleSlug: string,
+  completed: ReadonlySet<string>,
+) {
+  const index = course.modules.findIndex(
+    (module) => module.slug === moduleSlug,
+  );
+  if (index <= 0) {
+    return index === 0;
+  }
+  const previous = course.modules[index - 1];
+  if (!previous || previous.sections.length === 0) {
+    return false;
+  }
+  return previous.sections.every((section) =>
+    completed.has(sectionKey(previous.slug, section.slug)),
+  );
+}
+
+export function isSectionUnlocked(
+  course: Course,
+  moduleSlug: string,
+  sectionSlug: string,
+  completed: ReadonlySet<string>,
+) {
+  if (!isModuleUnlocked(course, moduleSlug, completed)) {
+    return false;
+  }
+  const module = findModule(course, moduleSlug);
+  if (!module) {
+    return false;
+  }
+  const index = module.sections.findIndex((item) => item.slug === sectionSlug);
+  if (index < 0) {
+    return false;
+  }
+  if (index === 0) {
+    return true;
+  }
+  const previous = module.sections[index - 1];
+  return completed.has(sectionKey(module.slug, previous.slug));
+}
+
+export function firstSection(course: Course) {
+  return flattenSections(course)[0] ?? null;
+}
+
+export function nextIncompleteSection(
+  course: Course,
+  completed: ReadonlySet<string>,
+) {
+  return (
+    flattenSections(course).find(
+      ({ module, section }) =>
+        isSectionUnlocked(course, module.slug, section.slug, completed) &&
+        !completed.has(sectionKey(module.slug, section.slug)),
+    ) ?? null
+  );
+}
+
+export function completedCount(course: Course, completed: ReadonlySet<string>) {
+  return flattenSections(course).filter(({ module, section }) =>
+    completed.has(sectionKey(module.slug, section.slug)),
+  ).length;
+}
+
+export function progressPercent(
+  course: Course,
+  completed: ReadonlySet<string>,
+) {
+  const total = sectionCount(course);
+  if (total === 0) {
+    return 0;
+  }
+  return Math.round((completedCount(course, completed) / total) * 100);
+}
+
+export function formatProgress(done: number, total: number) {
+  return `${done} из ${formatSections(total)}`;
+}
+
+export function neighborSections(
+  course: Course,
+  moduleSlug: string,
+  sectionSlug: string,
+) {
+  const flat = flattenSections(course);
+  const index = flat.findIndex(
+    (item) =>
+      item.module.slug === moduleSlug && item.section.slug === sectionSlug,
+  );
+  return {
+    prev: index > 0 ? flat[index - 1] : null,
+    next: index >= 0 && index < flat.length - 1 ? flat[index + 1] : null,
+  };
+}
+
+export function estimateCourseSectionMinutes(section: CourseSection) {
+  const chunks: string[] = [];
+  let codeBlocks = 0;
+  for (const block of section.body) {
+    if (block.type === "code") {
+      codeBlocks += 1;
+    } else if (block.type === "ul") {
+      chunks.push(...block.items);
+    } else {
+      chunks.push(block.text);
+    }
+  }
+  let minutes = estimateLessonMinutes(countWords(chunks.join(" ")), codeBlocks);
+  if (section.work?.type === "quiz") {
+    minutes += estimateQuizMinutes(section.work.questions.length);
+  }
+  if (section.work?.type === "task") {
+    minutes += Math.max(2, section.work.criteria.length);
+  }
+  return minutes;
 }
 
 function plural(count: number, one: string, few: string, many: string) {
