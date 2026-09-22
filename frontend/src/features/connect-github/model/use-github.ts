@@ -55,6 +55,9 @@ export function useCreateCourseRepository(slug: string) {
     mutationFn: () => createCourseRepository(slug),
     onSuccess: (repo) => {
       queryClient.setQueryData(["course-repository", slug], repo);
+      void queryClient.invalidateQueries({
+        queryKey: ["course-homework", slug],
+      });
       toastSuccess("Репозиторий создан");
     },
     onError: toastError,

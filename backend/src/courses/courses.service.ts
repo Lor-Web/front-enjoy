@@ -19,13 +19,8 @@ export class CoursesService {
 
   async getRepository(userId: string, courseSlug: string) {
     this.requireTemplate(courseSlug);
-    const repo = await this.prisma.courseRepository.findUnique({
-      where: { userId_courseSlug: { userId, courseSlug } },
-    });
-    if (!repo) {
-      return null;
-    }
-    return this.serialize(repo);
+    const repo = await this.liveRepository(userId, courseSlug);
+    return repo ? this.serialize(repo) : null;
   }
 
   async createRepository(userId: string, courseSlug: string) {
@@ -37,9 +32,7 @@ export class CoursesService {
       throw new ConflictException("Сначала подключите GitHub в профиле");
     }
 
-    const existing = await this.prisma.courseRepository.findUnique({
-      where: { userId_courseSlug: { userId, courseSlug } },
-    });
+    const existing = await this.liveRepository(userId, courseSlug);
     if (existing) {
       return this.serialize(existing);
     }
@@ -122,9 +115,7 @@ export class CoursesService {
   ) {
     this.requireTemplate(courseSlug);
     this.requireModuleSlug(moduleSlug);
-    const repo = await this.prisma.courseRepository.findUnique({
-      where: { userId_courseSlug: { userId, courseSlug } },
-    });
+    const repo = await this.liveRepository(userId, courseSlug);
     if (!repo) {
       throw new ConflictException("Сначала создайте репозиторий курса");
     }
@@ -166,6 +157,28 @@ export class CoursesService {
       include: { mentor: { select: { id: true, name: true } } },
     });
     return this.serializeHomework(row);
+  }
+
+  private async liveRepository(userId: string, courseSlug: string) {
+    const repo = await this.prisma.courseRepository.findUnique({
+      where: { userId_courseSlug: { userId, courseSlug } },
+    });
+    if (!repo) {
+      return null;
+    }
+    const github = await this.github.getRepo(repo.owner, repo.name);
+    if (github) {
+      return repo;
+    }
+    await this.prisma.$transaction([
+      this.prisma.courseHomeworkSubmission.deleteMany({
+        where: { userId, courseSlug },
+      }),
+      this.prisma.courseRepository.delete({
+        where: { id: repo.id },
+      }),
+    ]);
+    return null;
   }
 
   private requireModuleSlug(moduleSlug: string) {
