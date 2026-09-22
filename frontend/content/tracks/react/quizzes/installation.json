@@ -1,0 +1,60 @@
+{
+  "slug": "installation",
+  "lessonSlug": "installation",
+  "title": "Квиз: установка",
+  "questions": [
+    {
+      "id": "q1",
+      "prompt": "Что нужно установить, чтобы создать React-проект через Vite?",
+      "options": [
+        { "id": "a", "text": "Только браузер — Node.js не обязателен" },
+        { "id": "b", "text": "Node.js (вместе с ним появляется npm)" },
+        { "id": "c", "text": "Отдельный сервер Apache и PHP" }
+      ],
+      "correctOptionId": "b",
+      "explanation": "Сборщик и npm — программы Node.js. Без него команды create vite и npm install не заработают."
+    },
+    {
+      "id": "q2",
+      "prompt": "Какая команда создаёт проект с шаблоном React?",
+      "options": [
+        {
+          "id": "a",
+          "text": "npm create vite@latest zernyshko -- --template react"
+        },
+        { "id": "b", "text": "npx react-new zernyshko" },
+        { "id": "c", "text": "npm start react" }
+      ],
+      "correctOptionId": "a",
+      "explanation": "Официальный быстрый путь сейчас — Vite. Флаг --template react кладёт React и JSX."
+    },
+    {
+      "id": "q3",
+      "prompt": "Что делает npm run dev?",
+      "options": [
+        { "id": "a", "text": "Публикует кафе в интернет навсегда" },
+        {
+          "id": "b",
+          "text": "Запускает локальный сервер разработки, обычно на localhost:5173"
+        },
+        { "id": "c", "text": "Удаляет node_modules и ставит пакеты заново" }
+      ],
+      "correctOptionId": "b",
+      "explanation": "Это режим разработки: сайт крутится у вас на компьютере и обновляется при сохранении файлов."
+    },
+    {
+      "id": "q4",
+      "prompt": "Зачем в main.jsx вызывают createRoot(...).render(<App />)?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Чтобы нарисовать корневой компонент внутри элемента #root"
+        },
+        { "id": "b", "text": "Чтобы скачать меню с сервера кафе" },
+        { "id": "c", "text": "Чтобы заменить Node.js на Python" }
+      ],
+      "correctOptionId": "a",
+      "explanation": "Это точка входа: React монтирует дерево компонентов в DOM-узел из index.html."
+    }
+  ]
+}

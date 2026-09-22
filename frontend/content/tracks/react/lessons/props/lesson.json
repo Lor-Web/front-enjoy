@@ -1,0 +1,8 @@
+{
+  "slug": "props",
+  "title": "Пропсы",
+  "order": 5,
+  "sourceUrl": "https://react.dev/learn/passing-props-to-a-component",
+  "sourceLicense": "CC-BY-4.0",
+  "quizSlug": "props"
+}

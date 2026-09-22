@@ -1,0 +1,8 @@
+{
+  "slug": "lists",
+  "title": "Списки",
+  "order": 7,
+  "sourceUrl": "https://react.dev/learn/rendering-lists",
+  "sourceLicense": "CC-BY-4.0",
+  "quizSlug": "lists"
+}

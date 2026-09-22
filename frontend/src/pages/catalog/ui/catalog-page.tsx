@@ -8,6 +8,7 @@ import {
   trackProgressPercent,
 } from "@/entities/progress";
 import { routes } from "@/shared/config/routes";
+import { useDocVersion } from "@/shared/lib/doc-version";
 import { Badge } from "@/shared/ui/badge";
 import { Progress } from "@/shared/ui/progress";
 import { AppShell } from "@/widgets/app-shell";
@@ -15,6 +16,7 @@ import { LessonSidebar } from "@/widgets/lesson-sidebar";
 
 export function CatalogPage() {
   const { data: lessons = [] } = useLessons();
+  const version = useDocVersion();
   const progress = useAtomValue(progressAtom);
   const percent = trackProgressPercent(
     progress,
@@ -26,7 +28,8 @@ export function CatalogPage() {
       <div className="mx-auto max-w-2xl">
         <h1 className="mb-3 text-3xl sm:text-4xl">Трек React</h1>
         <p className="text-muted-foreground mb-6 text-[17px] leading-7">
-          Два урока Quick Start: компоненты и JSX. После каждого — мини-квиз.
+          Меню кафе «Зёрнышко»: установка, компоненты, JSX, пропсы, условия,
+          списки, события и состояние. После каждого урока — мини-квиз.
         </p>
         <Progress value={percent} className="mb-2" />
         <p className="text-muted-foreground mb-8 text-sm">
@@ -40,7 +43,7 @@ export function CatalogPage() {
             return (
               <li key={lesson.slug}>
                 <Link
-                  to={routes.lesson(lesson.slug)}
+                  to={routes.lesson(lesson.slug, { version })}
                   className="hover:bg-accent/60 -mx-3 flex flex-col gap-2 rounded-md px-3 py-4 transition-colors sm:flex-row sm:items-baseline sm:justify-between"
                 >
                   <span>

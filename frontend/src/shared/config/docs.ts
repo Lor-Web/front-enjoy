@@ -26,16 +26,11 @@ function pathMatches(pathname: string, base: string) {
 
 export function isDocTechActive(id: DocTechId, pathname: string) {
   if (id === "react") {
-    return (
-      pathMatches(pathname, routes.docsReact) ||
-      pathMatches(pathname, routes.catalog)
-    );
+    return pathMatches(pathname, routes.docsReact);
   }
   return pathMatches(pathname, routes.docsJavascript);
 }
 
 export function isDocsSection(pathname: string) {
-  return (
-    pathMatches(pathname, routes.docs) || pathMatches(pathname, routes.catalog)
-  );
+  return pathMatches(pathname, routes.docs);
 }

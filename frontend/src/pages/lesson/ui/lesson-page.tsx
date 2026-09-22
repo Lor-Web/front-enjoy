@@ -8,6 +8,7 @@ import {
 import { useCompleteLesson } from "@/features/complete-lesson";
 import { useLessonView } from "@/features/select-lesson-view";
 import { routes } from "@/shared/config/routes";
+import { useDocVersion } from "@/shared/lib/doc-version";
 import { scrollToHash } from "@/shared/lib/scroll-to-hash";
 import { Button } from "@/shared/ui/button";
 import { AppShell } from "@/widgets/app-shell";
@@ -17,6 +18,7 @@ import { LessonSidebar } from "@/widgets/lesson-sidebar";
 export function LessonPage() {
   const { slug = "" } = useParams();
   const location = useLocation();
+  const version = useDocVersion();
   const { data: lesson, isError, isPending } = useLesson(slug);
   const completeLesson = useCompleteLesson();
   const [view] = useLessonView();
@@ -55,7 +57,7 @@ export function LessonPage() {
       <AppShell sidebar={<LessonSidebar />}>
         <p>Урок не найден.</p>
         <Button asChild variant="link" className="px-0">
-          <Link to={routes.catalog}>К каталогу</Link>
+          <Link to={routes.toCatalog(version)}>К каталогу</Link>
         </Button>
       </AppShell>
     );
@@ -70,18 +72,20 @@ export function LessonPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           {prev ? (
             <Button asChild variant="ghost" className="justify-start">
-              <Link to={routes.toLesson(prev.slug)}>← {prev.title}</Link>
+              <Link to={routes.toLesson(prev.slug, { version })}>
+                ← {prev.title}
+              </Link>
             </Button>
           ) : (
             <span />
           )}
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button asChild variant="outline">
-              <Link to={routes.quiz(lesson.slug)}>Мини-квиз</Link>
+              <Link to={routes.toQuiz(lesson.slug, version)}>Мини-квиз</Link>
             </Button>
             {next ? (
               <Button asChild>
-                <Link to={routes.toLesson(next.slug)}>Дальше</Link>
+                <Link to={routes.toLesson(next.slug, { version })}>Дальше</Link>
               </Button>
             ) : null}
           </div>

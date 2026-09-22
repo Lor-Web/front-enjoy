@@ -1,4 +1,11 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useParams,
+} from "react-router";
 import { RequireAuth } from "@/features/auth";
 import { CabinetPage, StudentProgressPage } from "@/pages/cabinet";
 import { CatalogPage } from "@/pages/catalog";
@@ -22,10 +29,11 @@ export function AppRouter() {
         <Route path="/" element={<HomePage />} />
         <Route path="/docs" element={<DocsPage />} />
         <Route path="/docs/react" element={<CatalogPage />} />
+        <Route path="/docs/react/:slug/quiz" element={<QuizPage />} />
+        <Route path="/docs/react/:slug" element={<LessonPage />} />
         <Route path="/docs/javascript" element={<JavascriptPage />} />
-        <Route path="/learn/react" element={<CatalogPage />} />
-        <Route path="/learn/react/:slug" element={<LessonPage />} />
-        <Route path="/learn/react/:slug/quiz" element={<QuizPage />} />
+        <Route path="/learn/react" element={<RedirectLearnToDocs />} />
+        <Route path="/learn/react/*" element={<RedirectLearnToDocs />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/users" element={<UsersPage />} />
@@ -62,4 +70,12 @@ export function AppRouter() {
       </Routes>
     </BrowserRouter>
   );
+}
+
+function RedirectLearnToDocs() {
+  const params = useParams();
+  const { search, hash } = useLocation();
+  const rest = params["*"];
+  const suffix = rest ? `/${rest}` : "";
+  return <Navigate to={`/docs/react${suffix}${search}${hash}`} replace />;
 }

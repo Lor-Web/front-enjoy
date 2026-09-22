@@ -1,0 +1,8 @@
+{
+  "slug": "what-is-react",
+  "title": "Зачем React",
+  "order": 2,
+  "sourceUrl": "https://react.dev/learn",
+  "sourceLicense": "CC-BY-4.0",
+  "quizSlug": "what-is-react"
+}

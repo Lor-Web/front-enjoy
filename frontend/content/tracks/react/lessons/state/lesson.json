@@ -1,0 +1,8 @@
+{
+  "slug": "state",
+  "title": "Состояние",
+  "order": 9,
+  "sourceUrl": "https://react.dev/learn/state-a-components-memory",
+  "sourceLicense": "CC-BY-4.0",
+  "quizSlug": "state"
+}

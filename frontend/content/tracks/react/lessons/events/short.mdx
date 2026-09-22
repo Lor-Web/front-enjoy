@@ -1,0 +1,92 @@
+Меню рисуется из массива, кнопка «В заказ» пока молчит. В React на клик отвечают **функцией-обработчиком**. Её передают в проп вроде `onClick` — без круглых скобок на конце.
+
+## Обработчик — обычная функция
+
+```jsx
+function DrinkCard({ name, price, isHit, inStock }) {
+  function handleAdd() {
+    alert(`${name} добавлен в заказ`);
+  }
+
+  return (
+    <article className="card">
+      <h3 className="card-title">
+        {name}
+        {isHit && <span className="badge">Хит</span>}
+      </h3>
+      <p className="card-price">{price} ₽</p>
+      {inStock ? (
+        <button type="button" onClick={handleAdd}>
+          В заказ
+        </button>
+      ) : (
+        <p>Нет в наличии</p>
+      )}
+    </article>
+  );
+}
+```
+
+`onClick={handleAdd}` означает: «когда кликнут, вызови эту функцию». Написали `onClick={handleAdd()}` — функция сработает сразу при отрисовке, а в кнопку попадёт `undefined`. Скобки не нужны.
+
+Имена обработчиков принято начинать с `handle`: `handleAdd`, `handleClick`. Это соглашение, не синтаксис.
+
+## Событие можно передать сверху
+
+Иногда карточке не нужно знать, что делать с заказом. Тогда обработчик приходит пропом — как `price`.
+
+```jsx
+function DrinkCard({ name, price, isHit, inStock, onAdd }) {
+  return (
+    <article className="card">
+      <h3 className="card-title">
+        {name}
+        {isHit && <span className="badge">Хит</span>}
+      </h3>
+      <p className="card-price">{price} ₽</p>
+      {inStock ? (
+        <button type="button" onClick={onAdd}>
+          В заказ
+        </button>
+      ) : (
+        <p>Нет в наличии</p>
+      )}
+    </article>
+  );
+}
+```
+
+В `Menu` собираем обработчик под конкретный напиток:
+
+```jsx
+function Menu() {
+  return (
+    <section>
+      <h2>Меню</h2>
+      {drinks.map((drink) => (
+        <DrinkCard
+          key={drink.id}
+          name={drink.name}
+          price={drink.price}
+          isHit={drink.isHit}
+          inStock={drink.inStock}
+          onAdd={() => alert(`${drink.name} добавлен в заказ`)}
+        />
+      ))}
+    </section>
+  );
+}
+```
+
+`onAdd={() => alert(...)}` — функция, которая ещё не вызвана. React вызовет её в момент клика. Для каждого напитка замыкание помнит своё `drink.name`.
+
+Кнопка какао не рендерится: `inStock` ложь. Кликать негде — и это правильно.
+
+Пока заказ живёт в `alert`. Чтобы число на экране росло с каждым кликом, нужна память компонента. Это следующий урок: состояние.
+
+## Что запомнить
+
+- Обработчик — функция, её передают, а не вызывают: `onClick={handleAdd}`.
+- Имена вроде `handleClick` — договорённость.
+- Обработчик можно объявить в карточке или передать пропом `onAdd`.
+- Кнопка «В заказ» в «Зёрнышке» пока показывает `alert`.

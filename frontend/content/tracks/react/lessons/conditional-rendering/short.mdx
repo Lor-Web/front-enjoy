@@ -1,0 +1,92 @@
+В «Зёрнышке» не все напитки одинаковые: латте — хит недели, какао сегодня закончилось. Один `DrinkCard` должен уметь выглядеть по-разному. В React нет отдельного синтаксиса «if в HTML» — используют обычный JavaScript.
+
+Добавим пропсы `isHit` и `inStock`:
+
+```jsx
+<DrinkCard name="Латте" price={280} isHit={true} inStock={true} />
+<DrinkCard name="Какао" price={240} isHit={false} inStock={false} />
+```
+
+## if перед return
+
+Когда веток много, проще посчитать разметку заранее.
+
+```jsx
+function DrinkCard({ name, price, isHit, inStock }) {
+  let badge = null;
+  if (isHit) {
+    badge = <span className="badge">Хит</span>;
+  }
+
+  let action;
+  if (inStock) {
+    action = <button type="button">В заказ</button>;
+  } else {
+    action = <p>Нет в наличии</p>;
+  }
+
+  return (
+    <article className="card">
+      <h3 className="card-title">
+        {name} {badge}
+      </h3>
+      <p className="card-price">{price} ₽</p>
+      {action}
+    </article>
+  );
+}
+```
+
+`null` в JSX ничего не рисует: бейдж просто отсутствует.
+
+## Тернарный оператор
+
+Если вариантов два и они короткие, условие можно оставить внутри разметки:
+
+```jsx
+<p className="card-status">
+  {inStock ? "Можно заказать" : "Закончился"}
+</p>
+```
+
+Читается как обычный JavaScript: «если `inStock`, покажи первую строку, иначе вторую».
+
+## && когда «или ничего»
+
+Бейдж «Хит» либо есть, либо его нет. Для этого удобен логический «и»:
+
+```jsx
+<h3 className="card-title">
+  {name}
+  {isHit && <span className="badge">Хит</span>}
+</h3>
+```
+
+Если `isHit` ложь, React ничего не добавит. Если истина — нарисует `<span>`.
+
+Не ставьте слева число: `{count && <p>…</p>}` при `count === 0` покажет ноль. Для чисел лучше тернарный оператор: `{count > 0 ? <p>{count}</p> : null}`.
+
+Соберём меню с разными карточками:
+
+```jsx
+function Menu() {
+  return (
+    <section>
+      <h2>Меню</h2>
+      <DrinkCard name="Латте" price={280} isHit={true} inStock={true} />
+      <DrinkCard name="Эспрессо" price={180} isHit={false} inStock={true} />
+      <DrinkCard name="Какао" price={240} isHit={false} inStock={false} />
+    </section>
+  );
+}
+```
+
+Три вызова подряд уже утомительны. В следующем уроке превратим их в массив и нарисуем циклом.
+
+## Что запомнить
+
+- Условия в React — обычный JavaScript, не новый язык шаблонов.
+- `if` — когда веток несколько.
+- `? :` — когда нужно выбрать одно из двух прямо в JSX.
+- `&&` — когда элемент либо есть, либо его нет.
+- Карточка «Зёрнышка» умеет хит и «нет в наличии».

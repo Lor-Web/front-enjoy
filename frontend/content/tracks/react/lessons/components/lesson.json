@@ -1,7 +1,7 @@
 {
   "slug": "components",
   "title": "Компоненты",
-  "order": 1,
+  "order": 3,
   "sourceUrl": "https://react.dev/learn/your-first-component",
   "sourceLicense": "CC-BY-4.0",
   "quizSlug": "components"

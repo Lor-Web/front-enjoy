@@ -1,29 +1,49 @@
 import type { To } from "react-router";
+import { TRACK_VERSION_LATEST } from "./tracks";
 
-function lessonSearch(view?: string) {
-  if (!view || view === "short") {
-    return "";
+type LessonLinkOptions = {
+  view?: string;
+  hash?: string;
+  version?: string;
+};
+
+function linkSearch(options?: { view?: string; version?: string }) {
+  const params = new URLSearchParams();
+  if (options?.view && options.view !== "short") {
+    params.set("view", options.view);
   }
-  return `?view=${view}`;
+  if (options?.version && options.version !== TRACK_VERSION_LATEST) {
+    params.set("v", options.version);
+  }
+  const query = params.toString();
+  return query ? `?${query}` : "";
 }
 
 function lessonPath(slug: string) {
-  return `/learn/react/${slug}`;
+  return `/docs/react/${slug}`;
 }
 
 export const routes = {
   home: "/",
-  catalog: "/learn/react",
-  lesson: (slug: string, options?: { view?: string; hash?: string }) => {
+  catalog: "/docs/react",
+  toCatalog: (version?: string): To => ({
+    pathname: "/docs/react",
+    search: linkSearch({ version }),
+  }),
+  lesson: (slug: string, options?: LessonLinkOptions) => {
     const hash = options?.hash ? `#${options.hash}` : "";
-    return `${lessonPath(slug)}${lessonSearch(options?.view)}${hash}`;
+    return `${lessonPath(slug)}${linkSearch(options)}${hash}`;
   },
-  toLesson: (slug: string, options?: { view?: string; hash?: string }): To => ({
+  toLesson: (slug: string, options?: LessonLinkOptions): To => ({
     pathname: lessonPath(slug),
-    search: lessonSearch(options?.view),
+    search: linkSearch(options),
     hash: options?.hash ? `#${options.hash}` : "",
   }),
-  quiz: (slug: string) => `/learn/react/${slug}/quiz`,
+  quiz: (slug: string) => `/docs/react/${slug}/quiz`,
+  toQuiz: (slug: string, version?: string): To => ({
+    pathname: `/docs/react/${slug}/quiz`,
+    search: linkSearch({ version }),
+  }),
   login: "/login",
   signup: "/signup",
   docs: "/docs",

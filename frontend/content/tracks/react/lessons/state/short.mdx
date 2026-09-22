@@ -1,0 +1,112 @@
+Клик есть, память нет: после `alert` экран не меняется. **Состояние** — данные, которые компонент помнит между отрисовками. Когда состояние меняется, React вызывает функцию снова и рисует новый UI.
+
+## useState — память компонента
+
+Хук `useState` вызывают **вверху** функции компонента, не внутри `if` и не в цикле.
+
+```jsx
+import { useState } from "react";
+
+function OrderBar() {
+  const [count, setCount] = useState(0);
+
+  return <p>В заказе: {count}</p>;
+}
+```
+
+`count` — текущее значение. `setCount` — единственный способ его обновить. `0` — значение до первого клика.
+
+## Счётчик в одной карточке
+
+Если каждую карточку снабдить своим `count`, латте и эспрессо будут считать по отдельности. Для учебного шага это даже наглядно:
+
+```jsx
+function DrinkCard({ name, price, isHit, inStock }) {
+  const [count, setCount] = useState(0);
+
+  function handleAdd() {
+    setCount(count + 1);
+  }
+
+  return (
+    <article className="card">
+      <h3 className="card-title">
+        {name}
+        {isHit && <span className="badge">Хит</span>}
+      </h3>
+      <p className="card-price">{price} ₽</p>
+      {inStock ? (
+        <button type="button" onClick={handleAdd}>
+          В заказ ({count})
+        </button>
+      ) : (
+        <p>Нет в наличии</p>
+      )}
+    </article>
+  );
+}
+```
+
+Нажали на латте — число на **этой** кнопке стало 1. Эспрессо не заметил. У каждого вызова `DrinkCard` своё состояние.
+
+Так кафе работать не должно: гость видит один заказ, не три независимых счётчика.
+
+## Поднимаем состояние вверх
+
+Правило простое: состояние кладут в **ближайший общий родитель** тех, кому оно нужно. Счётчик заказа нужен и меню, и нижней строке. Значит, он живёт в `CafeApp`.
+
+```jsx
+import { useState } from "react";
+
+function CafeApp() {
+  const [orderCount, setOrderCount] = useState(0);
+
+  function handleAdd() {
+    setOrderCount(orderCount + 1);
+  }
+
+  return (
+    <div>
+      <Header />
+      <Menu onAdd={handleAdd} />
+      <OrderBar count={orderCount} />
+    </div>
+  );
+}
+
+function OrderBar({ count }) {
+  return <p>В заказе: {count}</p>;
+}
+
+function Menu({ onAdd }) {
+  return (
+    <section>
+      <h2>Меню</h2>
+      {drinks.map((drink) => (
+        <DrinkCard
+          key={drink.id}
+          name={drink.name}
+          price={drink.price}
+          isHit={drink.isHit}
+          inStock={drink.inStock}
+          onAdd={onAdd}
+        />
+      ))}
+    </section>
+  );
+}
+```
+
+`DrinkCard` снова без собственного `useState`. Он только вызывает `onAdd` — тот самый `handleAdd` из `CafeApp`. Любая карточка увеличивает **общий** `orderCount`. `OrderBar` получает его пропом и показывает одно число.
+
+Данные текут вниз через пропсы, события — вверх через обработчики. Это основной поток в React.
+
+Дальше можно хранить не число, а список позиций. Идея та же: массив заказа в родителе, карточки сообщают «добавили латте». Для старта трека общего счётчика достаточно: каркас, JSX, пропсы, условия, список, клик и память уже связаны в одном кафе.
+
+## Что запомнить
+
+- Состояние — память компонента между отрисовками.
+- `useState` вызывают сверху функции, обновляют через `set…`.
+- У каждого экземпляра компонента своё состояние.
+- Общие данные поднимают в родителя и раздают пропсами.
+- В «Зёрнышке» заказ считает `CafeApp`, карточки только сигналят `onAdd`.

@@ -5,56 +5,53 @@
   "questions": [
     {
       "id": "q1",
-      "prompt": "Чем JSX является по сути?",
+      "prompt": "Что такое JSX?",
       "options": [
         {
           "id": "a",
-          "text": "Строкой HTML, которую React вставляет через innerHTML"
+          "text": "Строка-шаблон, которую React вставляет через innerHTML"
         },
         {
           "id": "b",
-          "text": "Расширением JavaScript, которое компилируется в вызовы React"
+          "text": "Разметка внутри JavaScript, которую сборщик превращает в вызовы React"
         },
-        { "id": "c", "text": "Отдельным языком шаблонов, как Handlebars" }
+        { "id": "c", "text": "Отдельный язык стилей вместо CSS" }
       ],
       "correctOptionId": "b",
-      "explanation": "JSX — синтаксис JS. Сборщик превращает его в обычные вызовы функций."
+      "explanation": "JSX выглядит как HTML, но это синтаксис JavaScript. Сборщик переводит его в функции React."
     },
     {
       "id": "q2",
-      "prompt": "Как вставить значение переменной в JSX?",
+      "prompt": "Как вернуть два соседних тега из компонента?",
       "options": [
-        { "id": "a", "text": "Фигурными скобками: {count}" },
-        { "id": "b", "text": "Двойными кавычками: \"count\"" },
-        { "id": "c", "text": "Директивой {{ count }}" }
+        { "id": "a", "text": "Поставить их подряд без обёртки" },
+        { "id": "b", "text": "Обернуть в <>...</> или в один общий тег" },
+        { "id": "c", "text": "Соединить плюсом: <h3 /> + <p />" }
       ],
-      "correctOptionId": "a",
-      "explanation": "В `{ }` можно поставить любое JS-выражение."
+      "correctOptionId": "b",
+      "explanation": "У return должен быть один корень: фрагмент или, например, article."
     },
     {
       "id": "q3",
-      "prompt": "Что делать, если компонент возвращает два соседних элемента?",
+      "prompt": "Как задать CSS-класс в JSX?",
       "options": [
-        {
-          "id": "a",
-          "text": "Обернуть их во фрагмент <>...</> или в один тег"
-        },
-        { "id": "b", "text": "Вернуть массив строк с HTML" },
-        { "id": "c", "text": "Ничего: JSX всегда разрешает несколько корней" }
+        { "id": "a", "text": "className=\"card\"" },
+        { "id": "b", "text": "class=\"card\"" },
+        { "id": "c", "text": "css=\"card\"" }
       ],
       "correctOptionId": "a",
-      "explanation": "У return должен быть один корень: тег или фрагмент."
+      "explanation": "class в JavaScript — зарезервированное слово, поэтому в JSX пишут className."
     },
     {
       "id": "q4",
-      "prompt": "Как в JSX задают CSS-класс?",
+      "prompt": "Как показать в разметке значение drink.name?",
       "options": [
-        { "id": "a", "text": "class, как в HTML" },
-        { "id": "b", "text": "className, в camelCase" },
-        { "id": "c", "text": "cssClass" }
+        { "id": "a", "text": "{{drink.name}}" },
+        { "id": "b", "text": "\"drink.name\"" },
+        { "id": "c", "text": "{drink.name}" }
       ],
-      "correctOptionId": "b",
-      "explanation": "`class` — зарезервированное слово JS, поэтому в JSX пишут className."
+      "correctOptionId": "c",
+      "explanation": "Фигурные скобки вставляют JavaScript-выражение. Кавычки передали бы строку как есть."
     }
   ]
 }

@@ -5,16 +5,19 @@ import { getLessonVariant, useLessons } from "@/entities/lesson";
 import { isLessonRead, isQuizPassed, progressAtom } from "@/entities/progress";
 import { useLessonView } from "@/features/select-lesson-view";
 import { routes } from "@/shared/config/routes";
+import { useDocVersion } from "@/shared/lib/doc-version";
 import { scrollToHash } from "@/shared/lib/scroll-to-hash";
 import { cn } from "@/shared/lib/utils";
 import { nestHeadings } from "../lib/nest-headings";
 import { navExpandedAtom } from "../model/nav-expanded-atom";
 import { useActiveHeading } from "../model/use-active-heading";
+import { DocsVersionSelect } from "./docs-version-select";
 
 export function LessonSidebar() {
   const { data: lessons = [] } = useLessons();
   const progress = useAtomValue(progressAtom);
   const location = useLocation();
+  const version = useDocVersion();
   const [view] = useLessonView();
   const [expandedMap, setExpandedMap] = useAtom(navExpandedAtom);
 
@@ -37,9 +40,12 @@ export function LessonSidebar() {
 
   return (
     <nav aria-label="Оглавление трека" className="px-3 py-4">
-      <p className="text-muted-foreground px-2 pb-3 text-xs font-medium tracking-wide uppercase">
-        React
-      </p>
+      <div className="mb-3 flex items-center justify-between gap-2 px-2">
+        <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+          React
+        </p>
+        <DocsVersionSelect />
+      </div>
       <ol className="space-y-1">
         {lessons.map((lesson, index) => {
           const active = activeLesson?.slug === lesson.slug;
@@ -86,7 +92,7 @@ export function LessonSidebar() {
                   <span className="size-6 shrink-0" />
                 )}
                 <Link
-                  to={routes.toLesson(lesson.slug)}
+                  to={routes.toLesson(lesson.slug, { version })}
                   className={cn(
                     "min-w-0 flex-1 rounded-md px-1.5 py-1.5 text-sm leading-5 transition-colors",
                     active
@@ -121,6 +127,7 @@ export function LessonSidebar() {
                             active && onLessonPage,
                             lesson.slug,
                             section.id,
+                            version,
                           )}
                           samePage={active && onLessonPage}
                         />
@@ -139,6 +146,7 @@ export function LessonSidebar() {
                                     active && onLessonPage,
                                     lesson.slug,
                                     child.id,
+                                    version,
                                   )}
                                   samePage={active && onLessonPage}
                                 />
@@ -159,11 +167,16 @@ export function LessonSidebar() {
   );
 }
 
-function headingHref(onCurrentLesson: boolean, slug: string, id: string) {
+function headingHref(
+  onCurrentLesson: boolean,
+  slug: string,
+  id: string,
+  version: string,
+) {
   if (onCurrentLesson) {
     return `#${id}`;
   }
-  return routes.lesson(slug, { hash: id });
+  return routes.lesson(slug, { hash: id, version });
 }
 
 function HeadingLink({
