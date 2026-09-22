@@ -3,13 +3,7 @@ export type RatingSummary = {
   count: number;
 };
 
-export const CONTACT_KEYS = [
-  "telegram",
-  "vk",
-  "discord",
-  "github",
-  "website",
-] as const;
+export const CONTACT_KEYS = ["telegram", "vk", "discord", "website"] as const;
 
 export type ContactKey = (typeof CONTACT_KEYS)[number];
 
@@ -19,7 +13,6 @@ export const emptyContacts: UserContacts = {
   telegram: null,
   vk: null,
   discord: null,
-  github: null,
   website: null,
 };
 
@@ -39,7 +32,6 @@ export const VISIBILITY_KEYS = [
   "telegram",
   "vk",
   "discord",
-  "github",
   "website",
 ] as const;
 
@@ -59,7 +51,6 @@ export const defaultVisibility: ProfileVisibility = {
   telegram: true,
   vk: true,
   discord: true,
-  github: true,
   website: true,
 };
 
@@ -84,6 +75,7 @@ export type PublicProfile = {
 export type MeProfile = PublicProfile & {
   email: string;
   visibility: ProfileVisibility;
+  githubLogin: string | null;
 };
 
 export type MentorshipStatus = "pending" | "active" | "declined" | "ended";

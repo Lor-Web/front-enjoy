@@ -16,8 +16,8 @@ import {
   useCourse,
 } from "@/entities/course";
 import { gradeLabel } from "@/entities/user";
+import { CourseRepoCta } from "@/features/connect-github";
 import { routes } from "@/shared/config/routes";
-import { toastSuccess } from "@/shared/lib/toast";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { AppShell } from "@/widgets/app-shell";
@@ -121,6 +121,7 @@ export function CoursePage() {
 
             <BuyCard
               className="mt-6 lg:hidden"
+              slug={course.slug}
               priceRub={course.priceRub}
               includes={course.includes}
             />
@@ -241,7 +242,11 @@ export function CoursePage() {
           </div>
 
           <aside className="sticky top-20 hidden lg:block">
-            <BuyCard priceRub={course.priceRub} includes={course.includes} />
+            <BuyCard
+              slug={course.slug}
+              priceRub={course.priceRub}
+              includes={course.includes}
+            />
           </aside>
         </div>
       </div>
@@ -250,10 +255,12 @@ export function CoursePage() {
 }
 
 function BuyCard({
+  slug,
   priceRub,
   includes,
   className,
 }: {
+  slug: string;
   priceRub: number;
   includes: string[];
   className?: string;
@@ -263,16 +270,9 @@ function BuyCard({
       <p className="text-3xl font-semibold tabular-nums">
         {formatPrice(priceRub)}
       </p>
-      <Button
-        className="mt-4 w-full"
-        onClick={() => {
-          toastSuccess("Запись на курс скоро откроется");
-        }}
-      >
-        Записаться на курс
-      </Button>
+      <CourseRepoCta slug={slug} />
       <p className="text-muted-foreground mt-2 text-center text-xs">
-        Каркас: репозиторий с тестами появится при старте курса
+        Репозиторий создаётся из шаблона курса в GitHub-организации Front Enjoy
       </p>
       <ul className="mt-5 space-y-2">
         {includes.map((item) => (

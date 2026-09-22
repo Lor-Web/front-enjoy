@@ -1,10 +1,4 @@
-export const CONTACT_KEYS = [
-  "telegram",
-  "vk",
-  "discord",
-  "github",
-  "website",
-] as const;
+export const CONTACT_KEYS = ["telegram", "vk", "discord", "website"] as const;
 
 export type ContactKey = (typeof CONTACT_KEYS)[number];
 
@@ -14,7 +8,6 @@ export const emptyContacts: UserContacts = {
   telegram: null,
   vk: null,
   discord: null,
-  github: null,
   website: null,
 };
 
@@ -22,7 +15,6 @@ const messages: Record<ContactKey, string> = {
   telegram: "Укажите Telegram как @username или ссылку t.me",
   vk: "Укажите ВКонтакте как ссылку vk.com или короткое имя",
   discord: "Укажите Discord как имя или ссылку-приглашение",
-  github: "Укажите GitHub как имя пользователя или ссылку github.com",
   website: "Укажите сайт как ссылку, например example.com",
 };
 
@@ -35,7 +27,6 @@ export function parseContacts(value: unknown): UserContacts {
     telegram: stringOrNull(raw.telegram),
     vk: stringOrNull(raw.vk),
     discord: stringOrNull(raw.discord),
-    github: stringOrNull(raw.github),
     website: stringOrNull(raw.website),
   };
 }
@@ -70,9 +61,7 @@ function normalizeContact(key: ContactKey, input: string) {
         ? normalizeVk(trimmed)
         : key === "discord"
           ? normalizeDiscord(trimmed)
-          : key === "github"
-            ? normalizeGithub(trimmed)
-            : normalizeWebsite(trimmed);
+          : normalizeWebsite(trimmed);
   if (!normalized) {
     throw new Error(messages[key]);
   }
@@ -115,17 +104,6 @@ function normalizeDiscord(trimmed: string) {
     return trimmed.replace(/^@/, "");
   }
   return null;
-}
-
-function normalizeGithub(trimmed: string) {
-  const fromUrl = trimmed.match(
-    /^(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)\/?$/i,
-  );
-  const fromHandle = trimmed.match(
-    /^@?([a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)$/,
-  );
-  const username = fromUrl?.[1] ?? fromHandle?.[1];
-  return username ? `https://github.com/${username}` : null;
 }
 
 function normalizeWebsite(trimmed: string) {

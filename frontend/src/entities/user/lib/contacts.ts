@@ -29,12 +29,6 @@ export const CONTACT_FIELDS: Array<{
     hint: "Ник или ссылка-приглашение",
   },
   {
-    key: "github",
-    label: "GitHub",
-    placeholder: "github.com/username",
-    hint: "Имя пользователя или ссылка github.com",
-  },
-  {
     key: "website",
     label: "Сайт",
     placeholder: "example.com",
@@ -55,9 +49,6 @@ export function contactCaption(key: ContactKey, value: string) {
   }
   if (key === "vk") {
     return value.replace(/^https?:\/\/(?:www\.)?vk\.com\//i, "");
-  }
-  if (key === "github") {
-    return value.replace(/^https?:\/\/(?:www\.)?github\.com\//i, "");
   }
   if (key === "website") {
     return value.replace(/^https?:\/\/(?:www\.)?/i, "").replace(/\/$/, "");
@@ -114,13 +105,6 @@ function looksValid(key: ContactKey, trimmed: string) {
       /^(?:https?:\/\/)?(?:www\.)?(?:discord\.gg|discord\.com\/invite)\/([a-zA-Z0-9-]+)$/i.test(
         trimmed,
       ) || /^[\w.# ]{2,64}$/.test(trimmed)
-    );
-  }
-  if (key === "github") {
-    return (
-      /^(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)\/?$/i.test(
-        trimmed,
-      ) || /^@?([a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)$/.test(trimmed)
     );
   }
   const withProtocol = /^https?:\/\//i.test(trimmed)

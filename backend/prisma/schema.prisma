@@ -22,16 +22,34 @@ model User {
   country       String?
   city          String?
   otherContacts String?
-  visibility    Json     @default("{}")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  visibility     Json      @default("{}")
+  githubId       String?   @unique
+  githubLogin    String?
+  githubLinkedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   lessonReads          LessonRead[]
   quizProgress         QuizProgress[]
-  mentorshipsAsMentor  Mentorship[]   @relation("Mentor")
-  mentorshipsAsStudent Mentorship[]   @relation("Student")
-  ratingsGiven         Rating[]       @relation("RatingFrom")
-  ratingsReceived      Rating[]       @relation("RatingTo")
+  courseRepositories   CourseRepository[]
+  mentorshipsAsMentor  Mentorship[]       @relation("Mentor")
+  mentorshipsAsStudent Mentorship[]       @relation("Student")
+  ratingsGiven         Rating[]           @relation("RatingFrom")
+  ratingsReceived      Rating[]           @relation("RatingTo")
+}
+
+model CourseRepository {
+  id         String   @id @default(cuid())
+  userId     String
+  courseSlug String
+  owner      String
+  name       String
+  htmlUrl    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseSlug])
 }
 
 model LessonRead {

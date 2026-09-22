@@ -63,7 +63,6 @@ export function ProfileForm({ me }: ProfileFormProps) {
         telegram: me.contacts.telegram ?? emptyContacts.telegram ?? "",
         vk: me.contacts.vk ?? "",
         discord: me.contacts.discord ?? "",
-        github: me.contacts.github ?? "",
         website: me.contacts.website ?? "",
       },
     },

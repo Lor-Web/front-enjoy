@@ -37,7 +37,7 @@ export type {
   VisibilityKey,
 } from "./model/types";
 export { emptyContacts } from "./model/types";
-export { contactIcons } from "./ui/brand-icons";
+export { contactIcons, GitHubIcon } from "./ui/brand-icons";
 export { ContactLinks } from "./ui/contact-links";
 export { GradeBadge } from "./ui/grade-badge";
 export { ProfileFacts } from "./ui/profile-facts";

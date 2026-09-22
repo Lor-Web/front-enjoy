@@ -36,6 +36,7 @@ export type PublicProfile = {
 export type MeProfile = PublicProfile & {
   email: string;
   visibility: ProfileVisibility;
+  githubLogin: string | null;
 };
 
 export type ProfileUser = Pick<
@@ -119,7 +120,6 @@ export async function toPublicProfile(
       telegram: showContact("telegram") ? contacts.telegram : null,
       vk: showContact("vk") ? contacts.vk : null,
       discord: showContact("discord") ? contacts.discord : null,
-      github: showContact("github") ? contacts.github : null,
       website: showContact("website") ? contacts.website : null,
     },
     mentorOffered: user.mentorOffered,
@@ -145,12 +145,13 @@ export async function toPublicProfile(
 
 export async function toMeProfile(
   prisma: PrismaService,
-  user: ProfileUser,
+  user: ProfileUser & { githubLogin: string | null },
 ): Promise<MeProfile> {
   const profile = await toPublicProfile(prisma, user, "owner");
   return {
     ...profile,
     email: user.email,
     visibility: parseVisibility(user.visibility),
+    githubLogin: user.githubLogin,
   };
 }

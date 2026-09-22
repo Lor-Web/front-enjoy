@@ -35,11 +35,12 @@ function GitHubIcon(props: IconProps) {
   return <BrandIcon icon={siGithub} {...props} />;
 }
 
+export { GitHubIcon };
+
 export const contactIcons: Record<ContactKey, ComponentType<IconProps>> = {
   telegram: TelegramIcon,
   vk: VkIcon,
   discord: DiscordIcon,
-  github: GitHubIcon,
   website: Globe,
 };
 
@@ -47,6 +48,5 @@ export const contactIconClass: Record<ContactKey, string> = {
   telegram: "text-[#26A5E4]",
   vk: "text-[#0077FF]",
   discord: "text-[#5865F2]",
-  github: "text-foreground",
   website: "text-primary",
 };

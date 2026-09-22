@@ -24,7 +24,6 @@ export const profileFormSchema = z.object({
       telegram: z.string(),
       vk: z.string(),
       discord: z.string(),
-      github: z.string(),
       website: z.string(),
     })
     .superRefine((contacts, ctx) => {

@@ -10,7 +10,6 @@ export const VISIBILITY_KEYS = [
   "telegram",
   "vk",
   "discord",
-  "github",
   "website",
 ] as const;
 
@@ -30,7 +29,6 @@ export const defaultVisibility: ProfileVisibility = {
   telegram: true,
   vk: true,
   discord: true,
-  github: true,
   website: true,
 };
 

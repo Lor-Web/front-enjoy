@@ -6,7 +6,10 @@ function show(run: () => void) {
 }
 
 export function toastError(error: unknown) {
-  const message = getApiError(error) || "Не получилось выполнить запрос";
+  const message =
+    typeof error === "string"
+      ? error
+      : getApiError(error) || "Не получилось выполнить запрос";
   show(() => {
     toast.error(message);
   });

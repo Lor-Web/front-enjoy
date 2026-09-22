@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { RatingLabel } from "@/entities/user";
 import { useMe } from "@/features/auth";
+import { GithubConnect } from "@/features/connect-github";
 import { useUpdateProfile } from "@/features/offer-mentoring";
 import { routes } from "@/shared/config/routes";
 import { Badge } from "@/shared/ui/badge";
@@ -64,6 +65,7 @@ export function MePage() {
             }}
           />
         </div>
+        <GithubConnect githubLogin={me.githubLogin} />
         <ProfileForm key={me.id} me={me} />
       </div>
     </AppShell>

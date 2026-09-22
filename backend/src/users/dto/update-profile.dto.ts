@@ -28,11 +28,6 @@ export class ProfileContactsDto {
   discord?: string;
 
   @IsOptional()
-  @IsString({ message: "GitHub должен быть строкой" })
-  @MaxLength(120, { message: "GitHub слишком длинный" })
-  github?: string;
-
-  @IsOptional()
   @IsString({ message: "Сайт должен быть строкой" })
   @MaxLength(200, { message: "Сайт слишком длинный" })
   website?: string;
@@ -82,10 +77,6 @@ export class ProfileVisibilityDto {
   @IsOptional()
   @IsBoolean({ message: "Видимость Discord должна быть да или нет" })
   discord?: boolean;
-
-  @IsOptional()
-  @IsBoolean({ message: "Видимость GitHub должна быть да или нет" })
-  github?: boolean;
 
   @IsOptional()
   @IsBoolean({ message: "Видимость сайта должна быть да или нет" })
