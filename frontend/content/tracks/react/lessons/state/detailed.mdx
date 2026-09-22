@@ -1,0 +1,171 @@
+Основное уже поднимает счётчик в `CafeApp`. Здесь — почему `setCount(count + 1)` дважды не даёт +2, как обновлять массивы без мутации и что в состояние класть не стоит.
+
+## Состояние — снимок этого рендера
+
+`count` в теле функции — значение **на эту отрисовку**. Клики не читают переменную «вживую».
+
+```jsx
+function OrderBar() {
+  const [count, setCount] = useState(0);
+
+  function handleAddTwice() {
+    setCount(count + 1);
+    setCount(count + 1);
+  }
+
+  return (
+    <button type="button" onClick={handleAddTwice}>
+      Два сразу ({count})
+    </button>
+  );
+}
+```
+
+Оба вызова видят один и тот же `count`, например `0`. Оба просят «сделай 1». React берёт последнее: на экране `1`, не `2`.
+
+Если новое значение строится из предыдущего, передайте функцию:
+
+```jsx
+function handleAddTwice() {
+  setCount((current) => current + 1);
+  setCount((current) => current + 1);
+}
+```
+
+Первый апдейтер: `0 → 1`. Второй: `1 → 2`. Для одного «В заказ» достаточно `setOrderCount(orderCount + 1)`. Функция нужна, когда подряд несколько обновлений или обновление приходит из таймера/колбэка, где снимок уже старый.
+
+## Объекты и массивы заменяют, не правят
+
+React сравнивает состояние по данным, которые вы ему отдали. Если изменить массив на месте, ссылка та же — он может не перерисовать.
+
+```jsx
+function CafeApp() {
+  const [order, setOrder] = useState([]);
+
+  function handleAdd(name) {
+    order.push(name); // мутация, так нельзя
+    setOrder(order); // та же ссылка
+  }
+}
+```
+
+Новый массив:
+
+```jsx
+function handleAdd(name) {
+  setOrder([...order, name]);
+}
+```
+
+Или через апдейтер, если клики могут догнать друг друга:
+
+```jsx
+function handleAdd(name) {
+  setOrder((current) => [...current, name]);
+}
+```
+
+Объект позиции — тоже копия:
+
+```jsx
+function handleAdd(name) {
+  setOrder((current) => [
+    ...current,
+    { id: name, title: name, qty: 1 },
+  ]);
+}
+```
+
+Не пишите `order[0].qty++`. Для изменения одной позиции собирают новый массив новых объектов.
+
+Пока в «Зёрнышке» хватает числа `orderCount`. Массив — тот же приём, когда будете хранить состав заказа.
+
+## Не дублируйте то, что можно посчитать
+
+Если на экране «В заказе: 3», а в массиве три имени, длину **не** кладут во второй `useState`. Её считают:
+
+```jsx
+function CafeApp() {
+  const [order, setOrder] = useState([]);
+  const orderCount = order.length;
+
+  return (
+    <div>
+      <Menu onAdd={(name) => setOrder((current) => [...current, name])} />
+      <OrderBar count={orderCount} />
+    </div>
+  );
+}
+```
+
+Два источника (`order` и `count`) разъедутся после первого бага. Состояние — факты, которые нельзя вывести. Подпись, сумма, «пустое ли меню» — выражения.
+
+То же с пропсами: не копируйте `price` в `useState(price)`, «чтобы запомнить». Цена пришла сверху — читайте проп. В state цена попадает, только если карточка **сама** её меняет (локальная скидка), и тогда это уже не проп, а местный факт.
+
+## Несколько кусков или один объект
+
+Два независимых факта — два хука:
+
+```jsx
+const [orderCount, setOrderCount] = useState(0);
+const [isOpen, setIsOpen] = useState(true);
+```
+
+Часы работы кафе и заказ не обязаны ездить одним объектом. Когда поля всегда меняются вместе (состав заказа), один массив/объект проще, чем десять `useState`.
+
+Не складывайте в state весь мир: напитки из модуля `drinks` остаются константой, пока меню не начнёт меняться с сервера.
+
+## Хуки только сверху
+
+```jsx
+function OrderBar({ hidden }) {
+  if (hidden) {
+    return null;
+  }
+  const [count, setCount] = useState(0); // так нельзя
+  return <p>{count}</p>;
+}
+```
+
+Число вызовов `useState` должно быть одинаковым на каждом рендере. Условие — вокруг JSX, не вокруг хука:
+
+```jsx
+function OrderBar({ hidden }) {
+  const [count, setCount] = useState(0);
+  if (hidden) {
+    return null;
+  }
+  return <p>В заказе: {count}</p>;
+}
+```
+
+## Кто владеет заказом
+
+Счётчик, который видят и кнопка, и `OrderBar`, живёт в `CafeApp`. Карточка не заводит свой `useState`, если это тот же заказ.
+
+```jsx
+function CafeApp() {
+  const [orderCount, setOrderCount] = useState(0);
+
+  function handleAdd() {
+    setOrderCount((current) => current + 1);
+  }
+
+  return (
+    <div>
+      <Header />
+      <Menu onAdd={handleAdd} />
+      <OrderBar count={orderCount} />
+    </div>
+  );
+}
+```
+
+Локальный стейт оставляйте тому, что больше никому не нужно: открыта ли подсказка на одной карточке. Общее — наверх.
+
+## Что запомнить
+
+- `count` в обработчике — снимок. От предыдущего значения — `setCount((c) => c + 1)`.
+- Массивы и объекты в state заменяют новой копией, не `push`.
+- Считаемое не хранят. Хуки не прячут в `if`.
+- Общий заказ — в родителе, карточки только зовут `onAdd`.

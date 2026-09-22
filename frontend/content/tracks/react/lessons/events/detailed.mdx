@@ -1,0 +1,171 @@
+В основном уроке кнопка вызывает `alert`. Здесь — как устроен объект события, как передать в обработчик id напитка и какие мелочи ломают клик в форме.
+
+## Функцию передают, не вызывают
+
+Скобки в JSX запускают код **сейчас**, при отрисовке, а не по клику.
+
+```jsx
+<button type="button" onClick={handleAdd()}>
+  В заказ
+</button>
+```
+
+`handleAdd` уже отработал, в `onClick` попал `undefined`. Клики молчат. Правильно — ссылка на функцию:
+
+```jsx
+<button type="button" onClick={handleAdd}>
+  В заказ
+</button>
+```
+
+Если нужны аргументы, оборачивают в другую функцию, которая ещё не вызвана:
+
+```jsx
+<button type="button" onClick={() => handleAdd(drink.id)}>
+  В заказ
+</button>
+```
+
+Внешняя стрелка живёт до клика. Внутренний `handleAdd(drink.id)` сработает только тогда.
+
+## Объект события
+
+Обработчик получает событие React (синтетическое: те же поля, что у браузера, плюс нормализация между браузерами).
+
+```jsx
+function handleAdd(event) {
+  console.log(event.type); // "click"
+  console.log(event.currentTarget); // кнопка, на которую повесили onClick
+}
+
+<button type="button" onClick={handleAdd}>
+  В заказ
+</button>
+```
+
+`event.target` — кто был кликнут внутри кнопки (текст, иконка). `currentTarget` — элемент с обработчиком. Для «В заказ» обычно достаточно самого факта клика, объект можно не читать.
+
+Чтобы страница не перезагрузилась по Enter в поле, останавливают действие браузера:
+
+```jsx
+function SearchBar() {
+  function handleSubmit(event) {
+    event.preventDefault();
+    alert("Ищем напиток");
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="q" placeholder="Найти в меню" />
+      <button type="submit">Найти</button>
+    </form>
+  );
+}
+```
+
+Без `preventDefault` форма уйдёт на новый URL — кафе «пропадёт».
+
+## Кто обрабатывает: карточка или родитель
+
+Локальный `alert` может жить в `DrinkCard`. Реальный заказ знает только родитель — тогда карточка зовёт проп:
+
+```jsx
+function DrinkCard({ name, inStock, onAdd }) {
+  function handleClick() {
+    onAdd(name);
+  }
+
+  if (!inStock) {
+    return <p>Нет в наличии</p>;
+  }
+
+  return (
+    <button type="button" onClick={handleClick}>
+      {name}: в заказ
+    </button>
+  );
+}
+
+function Menu({ onAdd }) {
+  return drinks.map((drink) => (
+    <DrinkCard
+      key={drink.id}
+      name={drink.name}
+      inStock={drink.inStock}
+      onAdd={onAdd}
+    />
+  ));
+}
+
+function CafeApp() {
+  function handleAdd(name) {
+    alert(`${name} добавлен в заказ`);
+  }
+
+  return <Menu onAdd={handleAdd} />;
+}
+```
+
+Имена парные: проп `onAdd` — «сообщить наверх», функция в родителе `handleAdd` — «обработать». Это договорённость React-кода, не синтаксис.
+
+## type="button", иначе submit
+
+Кнопка внутри `<form>` по умолчанию — `submit`. Клик «В заказ» внезапно отправит форму.
+
+```jsx
+<form onSubmit={handleSubmit}>
+  <input name="comment" placeholder="Комментарий к заказу" />
+  <button type="button" onClick={handleAdd}>
+    В заказ
+  </button>
+  <button type="submit">Оформить</button>
+</form>
+```
+
+Учебные кнопки вне формы тоже помечайте `type="button"`: привычка сэкономит час, когда форму всё-таки обернут.
+
+## Всплытие
+
+Клик по кнопке всплывает: сначала кнопка, потом карточка, потом меню. Обычно это не мешает. Останавливать всплытие стоит, только если родитель ловит клик по карточке (открыть подробности), а кнопка должна сделать другое и **не** открыть подробности:
+
+```jsx
+function DrinkCard({ name, onOpen, onAdd }) {
+  return (
+    <article onClick={onOpen}>
+      <h3>{name}</h3>
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onAdd(name);
+        }}
+      >
+        В заказ
+      </button>
+    </article>
+  );
+}
+```
+
+Без `stopPropagation` клик по кнопке вызовет и `onAdd`, и `onOpen`. Не ставьте `stopPropagation` «на всякий случай» — сложнее отлаживать, кто съел событие.
+
+В «Зёрнышке» пока нет клика по всей карточке: достаточно `onClick` на кнопке.
+
+## Не вешайте слушатель вручную
+
+```jsx
+function DrinkCard() {
+  const button = document.querySelector(".add");
+  button.addEventListener("click", handleAdd);
+  return <button className="add">В заказ</button>;
+}
+```
+
+Селектор может найти чужую кнопку, слушатель удвоится на каждом рендере, React про клик не узнает. Пишите `onClick` в JSX. Прямой DOM — редкость (фокус, сторонние карты), не путь для «В заказ».
+
+## Что запомнить
+
+- В JSX передают функцию: `onClick={handleAdd}` или `onClick={() => handleAdd(id)}`.
+- `preventDefault` — чтобы форма не перезагрузила страницу.
+- Кнопка в форме: `type="button"`, если это не отправка.
+- Событие поднимают пропом `onAdd`, обрабатывают в родителе `handleAdd`.

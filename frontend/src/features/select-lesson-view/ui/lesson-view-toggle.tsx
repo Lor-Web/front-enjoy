@@ -3,8 +3,8 @@ import { Button } from "@/shared/ui/button";
 import { useLessonView } from "../model/use-lesson-view";
 
 const LABELS: Record<LessonView, string> = {
-  short: "Коротко",
-  detailed: "Подробно",
+  short: "Основное",
+  detailed: "Продвинутое",
   practices: "Лучшие практики",
 };
 
