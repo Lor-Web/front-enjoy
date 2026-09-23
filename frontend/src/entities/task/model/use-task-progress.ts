@@ -12,6 +12,10 @@ import {
 
 const SYNC_DELAY = 1200;
 
+export function useTasksProgress() {
+  return useAtomValue(taskProgressAtom);
+}
+
 export function useTaskProgress(slug: string) {
   const token = useAtomValue(tokenAtom);
   const [map, setMap] = useAtom(taskProgressAtom);

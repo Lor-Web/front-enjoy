@@ -42,6 +42,13 @@ export type TaskTest = {
   run: (ctx: TaskTestContext) => void;
 };
 
+export type TaskFilters = {
+  q: string;
+  tech: TaskTechId | "";
+  level: TaskLevelId | "";
+  status: "" | "open" | "done";
+};
+
 export type Task = {
   slug: string;
   title: string;

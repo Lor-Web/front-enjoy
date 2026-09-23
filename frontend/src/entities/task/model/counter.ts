@@ -1,6 +1,7 @@
+import { reactSandboxFiles } from "../lib/react-sandbox";
 import type { Task } from "./types";
 
-const SOLUTION_APP = `import { useState } from "react";
+const SOLUTION = `import { useState } from "react";
 
 export default function App() {
   const [count, setCount] = useState(0);
@@ -54,58 +55,12 @@ export const COUNTER_TASK: Task = {
       type: "p",
       text: "Один useState хранит счётчик. Клик вызывает setCount с предыдущим значением плюс один, а кнопка показывает актуальное число.",
     },
-    {
-      type: "code",
-      lang: "jsx",
-      text: SOLUTION_APP.trim(),
-    },
+    { type: "code", lang: "jsx", text: SOLUTION.trim() },
   ],
-  files: [
-    {
-      path: "/package.json",
-      readOnly: true,
-      code: `{
-  "name": "counter",
-  "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
-  }
-}
-`,
-    },
-    {
-      path: "/public/index.html",
-      readOnly: true,
-      code: `<!DOCTYPE html>
-<html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Счётчик</title>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
-</html>
-`,
-    },
-    {
-      path: "/src/index.js",
-      readOnly: true,
-      code: `import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import App from "./App";
-import "./styles.css";
-
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
-`,
-    },
-    {
-      path: "/src/App.js",
-      code: `export default function App() {
+  files: reactSandboxFiles({
+    name: "counter",
+    title: "Счётчик",
+    app: `export default function App() {
   return (
     <div>
       <button>Кликов: 0</button>
@@ -113,17 +68,7 @@ createRoot(document.getElementById("root")).render(
   );
 }
 `,
-    },
-    {
-      path: "/src/styles.css",
-      code: `button {
-  font: inherit;
-  padding: 8px 14px;
-  cursor: pointer;
-}
-`,
-    },
-  ],
+  }),
   entry: "/src/App.js",
   activeFile: "/src/App.js",
   tests: [

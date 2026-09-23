@@ -1,3 +1,4 @@
+export { filterTasks, formatTasks } from "./lib/filter-tasks";
 export {
   findTaskFile,
   taskCodes,
@@ -10,6 +11,7 @@ export type {
   Task,
   TaskBlock,
   TaskFile,
+  TaskFilters,
   TaskLevelId,
   TaskTechId,
   TaskTest,
@@ -21,6 +23,7 @@ export {
   TASK_SOLUTION_AFTER,
   TASK_TECHS,
 } from "./model/types";
-export { useTaskProgress } from "./model/use-task-progress";
+export { useTaskProgress, useTasksProgress } from "./model/use-task-progress";
+export { TaskCard } from "./ui/task-card";
 export { TaskLevelIcon } from "./ui/task-level-icon";
 export { TaskTechIcon } from "./ui/task-tech-icon";

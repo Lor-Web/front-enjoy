@@ -21,8 +21,8 @@ import { ProfilePage } from "@/pages/profile";
 import { QuizPage } from "@/pages/quiz";
 import { SignupPage } from "@/pages/signup";
 import { TaskPage } from "@/pages/task";
+import { TasksPage } from "@/pages/tasks";
 import { UsersPage } from "@/pages/users";
-import { routes } from "@/shared/config/routes";
 import { ScrollOnNavigate } from "./scroll-on-navigate";
 
 export function AppRouter() {
@@ -46,10 +46,7 @@ export function AppRouter() {
           }
         />
         <Route path="/courses/:slug" element={<CoursePage />} />
-        <Route
-          path="/tasks"
-          element={<Navigate to={routes.task("counter")} replace />}
-        />
+        <Route path="/tasks" element={<TasksPage />} />
         <Route path="/tasks/:slug" element={<TaskPage />} />
         <Route path="/learn/react" element={<RedirectLearnToDocs />} />
         <Route path="/learn/react/*" element={<RedirectLearnToDocs />} />
