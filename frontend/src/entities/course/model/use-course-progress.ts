@@ -1,71 +1,96 @@
-import { useAtom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAtomValue } from "jotai";
 import { useCallback, useMemo } from "react";
+import { tokenAtom } from "@/features/auth";
+import {
+  completeCourseSection,
+  fetchCourseProgress,
+  startCourseProgress,
+} from "../api/course-progress-api";
 import { sectionKey } from "../lib/course-format";
+import {
+  type CourseProgressState,
+  emptyCourseProgress,
+} from "./course-progress";
 
-type CourseProgressEntry = {
-  startedAt: string | null;
-  completed: string[];
-  answers: Record<string, number[]>;
-};
-
-type CourseProgressMap = Record<string, CourseProgressEntry | string[]>;
-
-const progressAtom = atomWithStorage<CourseProgressMap>(
-  "fe-course-progress",
-  {},
-  undefined,
-  { getOnInit: true },
-);
-
-function readAnswers(value: unknown) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return {} as Record<string, number[]>;
-  }
-  const result: Record<string, number[]> = {};
-  for (const [key, item] of Object.entries(value)) {
-    if (
-      Array.isArray(item) &&
-      item.every((entry) => typeof entry === "number")
-    ) {
-      result[key] = item;
-    }
-  }
-  return result;
-}
-
-function readEntry(value: CourseProgressEntry | string[] | undefined) {
-  if (Array.isArray(value)) {
-    return {
-      startedAt: value.length > 0 ? "legacy" : null,
-      completed: value,
-      answers: {} as Record<string, number[]>,
-    };
-  }
-  if (value && Array.isArray(value.completed)) {
-    return {
-      startedAt:
-        typeof value.startedAt === "string" && value.startedAt
-          ? value.startedAt
-          : value.completed.length > 0
-            ? "legacy"
-            : null,
-      completed: value.completed.filter((item) => typeof item === "string"),
-      answers: readAnswers(value.answers),
-    };
-  }
-  return {
-    startedAt: null,
-    completed: [] as string[],
-    answers: {} as Record<string, number[]>,
-  };
+export function courseProgressQueryKey(courseSlug: string) {
+  return ["course-progress", courseSlug] as const;
 }
 
 export function useCourseProgress(courseSlug: string) {
-  const [map, setMap] = useAtom(progressAtom);
-  const entry = useMemo(() => readEntry(map[courseSlug]), [map, courseSlug]);
+  const token = useAtomValue(tokenAtom);
+  const queryClient = useQueryClient();
+  const queryKey = courseProgressQueryKey(courseSlug);
+  const query = useQuery({
+    queryKey,
+    enabled: Boolean(token && courseSlug),
+    queryFn: () => fetchCourseProgress(courseSlug),
+  });
+  const entry = query.data ?? emptyCourseProgress;
   const completed = useMemo(() => new Set(entry.completed), [entry.completed]);
   const started = Boolean(entry.startedAt);
+
+  const startMutation = useMutation({
+    mutationFn: () => startCourseProgress(courseSlug),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+      const prev =
+        queryClient.getQueryData<CourseProgressState>(queryKey) ??
+        emptyCourseProgress;
+      queryClient.setQueryData(queryKey, {
+        ...prev,
+        startedAt: prev.startedAt ?? new Date().toISOString(),
+      });
+      return { prev };
+    },
+    onError: (_error, _value, context) => {
+      if (context?.prev) {
+        queryClient.setQueryData(queryKey, context.prev);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKey, data);
+    },
+  });
+
+  const completeMutation = useMutation({
+    mutationFn: (input: {
+      moduleSlug: string;
+      sectionSlug: string;
+      answers?: number[];
+    }) =>
+      completeCourseSection(
+        courseSlug,
+        input.moduleSlug,
+        input.sectionSlug,
+        input.answers,
+      ),
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey });
+      const prev =
+        queryClient.getQueryData<CourseProgressState>(queryKey) ??
+        emptyCourseProgress;
+      const key = sectionKey(input.moduleSlug, input.sectionSlug);
+      queryClient.setQueryData(queryKey, {
+        startedAt: prev.startedAt ?? new Date().toISOString(),
+        completed: prev.completed.includes(key)
+          ? prev.completed
+          : [...prev.completed, key],
+        answers: input.answers
+          ? { ...prev.answers, [key]: input.answers }
+          : prev.answers,
+      });
+      return { prev };
+    },
+    onError: (_error, _value, context) => {
+      if (context?.prev) {
+        queryClient.setQueryData(queryKey, context.prev);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKey, data);
+    },
+  });
 
   const isDone = useCallback(
     (moduleSlug: string, sectionSlug: string) =>
@@ -79,49 +104,38 @@ export function useCourseProgress(courseSlug: string) {
     [entry.answers],
   );
 
+  const startCourse = startMutation.mutate;
+  const completeSection = completeMutation.mutate;
+
   const start = useCallback(() => {
-    setMap((current) => {
-      const currentEntry = readEntry(current[courseSlug]);
-      if (currentEntry.startedAt) {
-        return current;
-      }
-      return {
-        ...current,
-        [courseSlug]: {
-          startedAt: new Date().toISOString(),
-          completed: currentEntry.completed,
-          answers: currentEntry.answers,
-        },
-      };
-    });
-  }, [courseSlug, setMap]);
+    if (!token || started) {
+      return;
+    }
+    startCourse();
+  }, [startCourse, started, token]);
 
   const complete = useCallback(
     (moduleSlug: string, sectionSlug: string, answers?: number[]) => {
+      if (!token) {
+        return;
+      }
       const key = sectionKey(moduleSlug, sectionSlug);
-      setMap((current) => {
-        const currentEntry = readEntry(current[courseSlug]);
-        const already = currentEntry.completed.includes(key);
-        const nextAnswers = answers
-          ? { ...currentEntry.answers, [key]: answers }
-          : currentEntry.answers;
-        if (already && currentEntry.startedAt && !answers) {
-          return current;
-        }
-        return {
-          ...current,
-          [courseSlug]: {
-            startedAt: currentEntry.startedAt ?? new Date().toISOString(),
-            completed: already
-              ? currentEntry.completed
-              : [...currentEntry.completed, key],
-            answers: nextAnswers,
-          },
-        };
-      });
+      if (completed.has(key) && !answers) {
+        return;
+      }
+      completeSection({ moduleSlug, sectionSlug, answers });
     },
-    [courseSlug, setMap],
+    [completeSection, completed, token],
   );
 
-  return { completed, started, isDone, quizAnswers, start, complete };
+  return {
+    completed,
+    started,
+    isDone,
+    quizAnswers,
+    start,
+    complete,
+    isPending: Boolean(token) && query.isPending,
+    isError: query.isError,
+  };
 }

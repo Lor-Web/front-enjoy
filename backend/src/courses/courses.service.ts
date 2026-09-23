@@ -10,8 +10,9 @@ import {
   type HomeworkChecksState,
 } from "../github/github.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { localHomeworkCheck } from "./homework-checks";
 import { normalizeHomeworkPullUrl, parseHomeworkPullUrl } from "./pull-url";
-import { homeworkRepoName } from "./templates";
+import { homeworkModuleNumber, homeworkRepoName } from "./templates";
 
 @Injectable()
 export class CoursesService {
@@ -92,6 +93,53 @@ export class CoursesService {
       },
     });
     return this.serialize(repo);
+  }
+
+  async ensureHomeworkChecks(
+    userId: string,
+    courseSlug: string,
+    moduleSlug: string,
+  ) {
+    this.requireTemplate(courseSlug);
+    this.requireModuleSlug(moduleSlug);
+    const moduleNumber = homeworkModuleNumber(courseSlug, moduleSlug);
+    if (!moduleNumber) {
+      throw new NotFoundException("Для этого модуля нет домашних проверок");
+    }
+
+    const repo = await this.liveRepository(userId, courseSlug);
+    if (!repo) {
+      return { synced: false };
+    }
+
+    const content = await this.readHomeworkCheck(courseSlug, moduleNumber);
+    if (!content) {
+      return { synced: false };
+    }
+
+    const path = `fe-checks/module-${moduleNumber}.mjs`;
+    const github = await this.github.getRepo(repo.owner, repo.name);
+    const defaultBranch = github?.default_branch || "main";
+    const branches = [defaultBranch];
+    const homeworkBranch = `module_${moduleNumber}`;
+    if (
+      homeworkBranch !== defaultBranch &&
+      (await this.github.hasBranch(repo.owner, repo.name, homeworkBranch))
+    ) {
+      branches.push(homeworkBranch);
+    }
+
+    for (const branch of branches) {
+      await this.github.upsertFile({
+        owner: repo.owner,
+        repo: repo.name,
+        path,
+        content,
+        message: `Проверки модуля ${moduleNumber}`,
+        branch,
+      });
+    }
+    return { synced: true };
   }
 
   async getHomework(userId: string, courseSlug: string, moduleSlug: string) {
@@ -252,6 +300,25 @@ export class CoursesService {
       }),
     ]);
     return null;
+  }
+
+  private async readHomeworkCheck(courseSlug: string, moduleNumber: number) {
+    const local = localHomeworkCheck(courseSlug, moduleNumber);
+    if (local) {
+      return local;
+    }
+    const template = this.requireTemplate(courseSlug);
+    const file = await this.github.getFile(
+      this.github.templatesOwner(),
+      template,
+      `fe-checks/module-${moduleNumber}.mjs`,
+    );
+    if (!file?.content) {
+      return null;
+    }
+    return Buffer.from(file.content.replace(/\n/g, ""), "base64").toString(
+      "utf8",
+    );
   }
 
   private requireModuleSlug(moduleSlug: string) {

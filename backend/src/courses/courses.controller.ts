@@ -43,6 +43,16 @@ export class CoursesController {
     return this.courses.createRepository(user.id, slug);
   }
 
+  @Post(":slug/modules/:moduleSlug/homework/checks")
+  @UseGuards(JwtAuthGuard)
+  ensureHomeworkChecks(
+    @CurrentUser() user: { id: string },
+    @Param("slug") slug: string,
+    @Param("moduleSlug") moduleSlug: string,
+  ) {
+    return this.courses.ensureHomeworkChecks(user.id, slug, moduleSlug);
+  }
+
   @Get(":slug/modules/:moduleSlug/homework")
   @UseGuards(JwtAuthGuard)
   getHomework(

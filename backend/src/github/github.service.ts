@@ -14,6 +14,13 @@ type GithubRepo = {
   name: string;
   html_url: string;
   owner: { login: string };
+  default_branch?: string;
+};
+
+type GithubFile = {
+  sha: string;
+  content?: string;
+  encoding?: string;
 };
 
 export type HomeworkChecksState = "pending" | "success" | "failure" | "unknown";
@@ -77,6 +84,72 @@ export class GithubService {
       token: this.orgToken(),
       missing: "null",
     });
+  }
+
+  async getFile(
+    owner: string,
+    name: string,
+    path: string,
+    ref?: string,
+  ): Promise<GithubFile | null> {
+    this.requireRepoCreate();
+    const query = ref ? `?ref=${encodeURIComponent(ref)}` : "";
+    return this.request<GithubFile | null>(
+      `/repos/${owner}/${name}/contents/${path}${query}`,
+      {
+        token: this.orgToken(),
+        missing: "null",
+      },
+    );
+  }
+
+  async upsertFile(input: {
+    owner: string;
+    repo: string;
+    path: string;
+    content: string;
+    message: string;
+    branch: string;
+  }) {
+    this.requireRepoCreate();
+    const existing = await this.getFile(
+      input.owner,
+      input.repo,
+      input.path,
+      input.branch,
+    );
+    if (decodeGithubFile(existing) === input.content) {
+      return;
+    }
+    try {
+      await this.putFile(input, existing?.sha);
+    } catch (error) {
+      if (!(error instanceof BadGatewayException)) {
+        throw error;
+      }
+      const again = await this.getFile(
+        input.owner,
+        input.repo,
+        input.path,
+        input.branch,
+      );
+      if (decodeGithubFile(again) === input.content) {
+        return;
+      }
+      await this.putFile(input, again?.sha);
+    }
+  }
+
+  async hasBranch(owner: string, name: string, branch: string) {
+    this.requireRepoCreate();
+    const ref = await this.request<{ ref?: string } | null>(
+      `/repos/${owner}/${name}/git/ref/heads/${encodeURIComponent(branch)}`,
+      {
+        token: this.orgToken(),
+        missing: "null",
+      },
+    );
+    return Boolean(ref);
   }
 
   async getPullChecks(
@@ -166,6 +239,32 @@ export class GithubService {
 
   templatesOwner() {
     return this.config.get<string>("GITHUB_TEMPLATES_OWNER")?.trim() ?? "";
+  }
+
+  private async putFile(
+    input: {
+      owner: string;
+      repo: string;
+      path: string;
+      content: string;
+      message: string;
+      branch: string;
+    },
+    sha?: string,
+  ) {
+    await this.request(
+      `/repos/${input.owner}/${input.repo}/contents/${input.path}`,
+      {
+        token: this.orgToken(),
+        method: "PUT",
+        body: {
+          message: input.message,
+          content: Buffer.from(input.content, "utf8").toString("base64"),
+          branch: input.branch,
+          ...(sha ? { sha } : {}),
+        },
+      },
+    );
   }
 
   private async exchangeCode(code: string) {
@@ -283,4 +382,13 @@ export class GithubService {
   private orgToken() {
     return this.config.get<string>("GITHUB_TOKEN")?.trim() ?? "";
   }
+}
+
+function decodeGithubFile(file: GithubFile | null) {
+  if (!file?.content) {
+    return null;
+  }
+  return Buffer.from(file.content.replace(/\n/g, ""), "base64").toString(
+    "utf8",
+  );
 }

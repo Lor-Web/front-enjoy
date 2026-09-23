@@ -13,6 +13,15 @@ export async function fetchCourseHomework(
   return data;
 }
 
+export async function ensureHomeworkChecks(
+  courseSlug: string,
+  moduleSlug: string,
+) {
+  await api.post(
+    `/courses/${courseSlug}/modules/${moduleSlug}/homework/checks`,
+  );
+}
+
 export async function submitCourseHomework(
   courseSlug: string,
   moduleSlug: string,

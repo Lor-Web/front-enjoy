@@ -19,6 +19,7 @@ export {
   progressPercent,
   sectionCount,
   sectionKey,
+  unlockedHomeworkModules,
 } from "./lib/course-format";
 export { COURSES, findCourse } from "./model/courses";
 export {

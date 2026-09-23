@@ -76,6 +76,19 @@ export function flattenSections(course: Course) {
   );
 }
 
+export function unlockedHomeworkModules(
+  course: Course,
+  completed: ReadonlySet<string>,
+) {
+  return flattenSections(course)
+    .filter(
+      ({ module, section }) =>
+        section.work?.type === "homework" &&
+        isSectionUnlocked(course, module.slug, section.slug, completed),
+    )
+    .map(({ module }) => module.slug);
+}
+
 export function sectionKey(moduleSlug: string, sectionSlug: string) {
   return `${moduleSlug}/${sectionSlug}`;
 }

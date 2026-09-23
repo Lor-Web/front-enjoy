@@ -21,6 +21,7 @@ import {
 } from "@/entities/course";
 import { gradeLabel } from "@/entities/user";
 import { tokenAtom } from "@/features/auth";
+import { useEnsureHomeworkChecks } from "@/features/submit-homework";
 import { routes } from "@/shared/config/routes";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
@@ -31,7 +32,13 @@ export function CoursePage() {
   const { slug = "" } = useParams();
   const token = useAtomValue(tokenAtom);
   const { data: course, isPending, isError } = useCourse(slug);
-  const { completed, isDone, started } = useCourseProgress(slug);
+  const {
+    completed,
+    isDone,
+    started,
+    isPending: progressPending,
+  } = useCourseProgress(slug);
+  useEnsureHomeworkChecks(course, completed);
 
   if (isPending) {
     return (
@@ -124,87 +131,91 @@ export function CoursePage() {
                 Раздел открывается после предыдущего. Модуль — после предыдущего
                 модуля. Домашняя работа — в последнем разделе модуля.
               </p>
-              <div className="divide-y rounded-md border">
-                {course.modules.map((module) => {
-                  const moduleOpen = isModuleUnlocked(
-                    course,
-                    module.slug,
-                    completed,
-                  );
-                  return (
-                    <details
-                      key={module.slug}
-                      open={moduleOpen}
-                      className="group"
-                    >
-                      <summary className="hover:bg-accent/50 flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
-                        {moduleOpen ? (
-                          <ChevronDown className="text-muted-foreground size-4 shrink-0 transition-transform group-open:rotate-180" />
-                        ) : (
-                          <Lock className="text-muted-foreground size-4 shrink-0" />
-                        )}
-                        <span className="flex-1">{module.title}</span>
-                        <span className="text-muted-foreground font-normal">
-                          {formatSections(module.sections.length)}
-                        </span>
-                      </summary>
-                      <p className="text-muted-foreground border-t px-4 py-2 pl-10 text-sm leading-6">
-                        {module.summary}
-                      </p>
-                      {module.sections.length === 0 ? (
-                        <p className="text-muted-foreground px-4 pb-3 pl-10 text-sm">
-                          Уроки появятся, когда закроете предыдущий модуль и мы
-                          их опубликуем.
+              {token && progressPending ? (
+                <p className="text-muted-foreground text-sm">Загрузка…</p>
+              ) : (
+                <div className="divide-y rounded-md border">
+                  {course.modules.map((module) => {
+                    const moduleOpen = isModuleUnlocked(
+                      course,
+                      module.slug,
+                      completed,
+                    );
+                    return (
+                      <details
+                        key={module.slug}
+                        open={moduleOpen}
+                        className="group"
+                      >
+                        <summary className="hover:bg-accent/50 flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+                          {moduleOpen ? (
+                            <ChevronDown className="text-muted-foreground size-4 shrink-0 transition-transform group-open:rotate-180" />
+                          ) : (
+                            <Lock className="text-muted-foreground size-4 shrink-0" />
+                          )}
+                          <span className="flex-1">{module.title}</span>
+                          <span className="text-muted-foreground font-normal">
+                            {formatSections(module.sections.length)}
+                          </span>
+                        </summary>
+                        <p className="text-muted-foreground border-t px-4 py-2 pl-10 text-sm leading-6">
+                          {module.summary}
                         </p>
-                      ) : (
-                        <ul className="border-t">
-                          {module.sections.map((section) => {
-                            const open = isSectionUnlocked(
-                              course,
-                              module.slug,
-                              section.slug,
-                              completed,
-                            );
-                            const done = isDone(module.slug, section.slug);
-                            const row = (
-                              <>
-                                {done ? (
-                                  <Check className="text-primary size-3.5 shrink-0" />
-                                ) : open ? null : (
-                                  <Lock className="size-3.5 shrink-0" />
-                                )}
-                                <span className="flex-1 text-foreground">
-                                  {section.title}
-                                </span>
-                              </>
-                            );
-                            return (
-                              <li key={section.slug}>
-                                {open && started && token ? (
-                                  <Link
-                                    to={routes.courseSection(
-                                      course.slug,
-                                      module.slug,
-                                      section.slug,
-                                    )}
-                                    className="hover:bg-accent/40 text-muted-foreground flex items-center gap-2 px-4 py-2.5 pl-10 text-sm"
-                                  >
-                                    {row}
-                                  </Link>
-                                ) : (
-                                  <p className="text-muted-foreground flex items-center gap-2 px-4 py-2.5 pl-10 text-sm">
-                                    {row}
-                                  </p>
-                                )}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
-                    </details>
-                  );
-                })}
-              </div>
+                        {module.sections.length === 0 ? (
+                          <p className="text-muted-foreground px-4 pb-3 pl-10 text-sm">
+                            Уроки появятся, когда закроете предыдущий модуль и
+                            мы их опубликуем.
+                          </p>
+                        ) : (
+                          <ul className="border-t">
+                            {module.sections.map((section) => {
+                              const open = isSectionUnlocked(
+                                course,
+                                module.slug,
+                                section.slug,
+                                completed,
+                              );
+                              const done = isDone(module.slug, section.slug);
+                              const row = (
+                                <>
+                                  {done ? (
+                                    <Check className="text-primary size-3.5 shrink-0" />
+                                  ) : open ? null : (
+                                    <Lock className="size-3.5 shrink-0" />
+                                  )}
+                                  <span className="flex-1 text-foreground">
+                                    {section.title}
+                                  </span>
+                                </>
+                              );
+                              return (
+                                <li key={section.slug}>
+                                  {open && started && token ? (
+                                    <Link
+                                      to={routes.courseSection(
+                                        course.slug,
+                                        module.slug,
+                                        section.slug,
+                                      )}
+                                      className="hover:bg-accent/40 text-muted-foreground flex items-center gap-2 px-4 py-2.5 pl-10 text-sm"
+                                    >
+                                      {row}
+                                    </Link>
+                                  ) : (
+                                    <p className="text-muted-foreground flex items-center gap-2 px-4 py-2.5 pl-10 text-sm">
+                                      {row}
+                                    </p>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </details>
+                    );
+                  })}
+                </div>
+              )}
             </section>
 
             <section className="mt-10">
@@ -247,7 +258,9 @@ function StartCard({
 }) {
   const token = useAtomValue(tokenAtom);
   const navigate = useNavigate();
-  const { completed, started, start } = useCourseProgress(course.slug);
+  const { completed, started, start, isPending } = useCourseProgress(
+    course.slug,
+  );
   const first = firstSection(course);
   const next = nextIncompleteSection(course, completed);
   const total = sectionCount(course);
@@ -267,7 +280,9 @@ function StartCard({
           <Progress value={progressPercent(course, completed)} />
         </div>
       ) : null}
-      {!token ? (
+      {token && isPending ? (
+        <p className="text-muted-foreground text-center text-sm">Загрузка…</p>
+      ) : !token ? (
         firstHref ? (
           <Button asChild className="w-full">
             <Link to={routes.login} state={{ from: firstHref }}>

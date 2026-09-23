@@ -14,7 +14,10 @@ import {
   useCourse,
   useCourseProgress,
 } from "@/entities/course";
-import { HomeworkPanel } from "@/features/submit-homework";
+import {
+  HomeworkPanel,
+  useEnsureHomeworkChecks,
+} from "@/features/submit-homework";
 import { routes } from "@/shared/config/routes";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -29,26 +32,42 @@ import { CourseSidebar } from "@/widgets/course-sidebar";
 export function CourseSectionPage() {
   const { slug = "", moduleSlug = "", sectionSlug = "" } = useParams();
   const { data: course, isPending, isError } = useCourse(slug);
-  const { completed, started, isDone, quizAnswers, complete, start } =
-    useCourseProgress(slug);
+  const {
+    completed,
+    started,
+    isDone,
+    quizAnswers,
+    complete,
+    start,
+    isPending: progressPending,
+    isError: progressError,
+  } = useCourseProgress(slug);
+  useEnsureHomeworkChecks(course, completed);
 
   useEffect(() => {
-    if (course) {
+    if (course && !progressPending && !started) {
       start();
     }
-  }, [course, start]);
+  }, [course, progressPending, start, started]);
 
   const module = course ? findModule(course, moduleSlug) : null;
   const section = module ? findSection(module, sectionSlug) : null;
   const done = module && section ? isDone(module.slug, section.slug) : false;
 
   useEffect(() => {
-    if (module && section && !section.work && !done) {
+    if (
+      module &&
+      section &&
+      !section.work &&
+      !done &&
+      !progressPending &&
+      !progressError
+    ) {
       complete(module.slug, section.slug);
     }
-  }, [complete, done, module, section]);
+  }, [complete, done, module, progressError, progressPending, section]);
 
-  if (isPending) {
+  if (isPending || progressPending) {
     return (
       <AppShell navTitle="Курс" navDescription="Оглавление">
         <p className="text-muted-foreground">Загрузка…</p>
@@ -62,6 +81,17 @@ export function CourseSectionPage() {
         <p>Курс не найден.</p>
         <Button asChild variant="link" className="px-0">
           <Link to={routes.courses}>К курсам</Link>
+        </Button>
+      </AppShell>
+    );
+  }
+
+  if (progressError) {
+    return (
+      <AppShell navTitle="Курс" navDescription={course.title}>
+        <p>Не удалось загрузить прогресс.</p>
+        <Button asChild variant="link" className="px-0">
+          <Link to={routes.course(course.slug)}>К курсу</Link>
         </Button>
       </AppShell>
     );

@@ -1,7 +1,51 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { useAtomValue } from "jotai";
+import { useEffect, useMemo, useRef } from "react";
+import { type Course, unlockedHomeworkModules } from "@/entities/course";
+import { tokenAtom } from "@/features/auth";
+import { useCourseRepository } from "@/features/connect-github";
 import { toastError, toastSuccess } from "@/shared/lib/toast";
-import { fetchCourseHomework, submitCourseHomework } from "../api";
+import {
+  ensureHomeworkChecks,
+  fetchCourseHomework,
+  submitCourseHomework,
+} from "../api";
+
+export function useEnsureHomeworkChecks(
+  course: Course | undefined,
+  completed: ReadonlySet<string>,
+) {
+  const token = useAtomValue(tokenAtom);
+  const signedIn = Boolean(token);
+  const slug = course?.slug ?? "";
+  const { data: repo } = useCourseRepository(slug, signedIn && Boolean(course));
+  const sent = useRef(new Set<string>());
+  const completedKey = Array.from(completed).sort().join("\0");
+  const modules = useMemo(() => {
+    if (!course) {
+      return [];
+    }
+    const done = new Set(completedKey ? completedKey.split("\0") : []);
+    return unlockedHomeworkModules(course, done);
+  }, [course, completedKey]);
+
+  useEffect(() => {
+    if (!course || !repo) {
+      return;
+    }
+    for (const moduleSlug of modules) {
+      const key = `${course.slug}/${moduleSlug}`;
+      if (sent.current.has(key)) {
+        continue;
+      }
+      sent.current.add(key);
+      void ensureHomeworkChecks(course.slug, moduleSlug).catch(() => {
+        sent.current.delete(key);
+      });
+    }
+  }, [course, modules, repo]);
+}
 
 export function useCourseHomework(
   courseSlug: string,
