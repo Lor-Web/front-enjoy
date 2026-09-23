@@ -31,6 +31,7 @@ model User {
 
   lessonReads              LessonRead[]
   quizProgress             QuizProgress[]
+  taskProgress             TaskProgress[]
   courseRepositories       CourseRepository[]
   courseHomeworkSubmissions CourseHomeworkSubmission[]
   homeworkReviews          CourseHomeworkSubmission[] @relation("HomeworkReviewer")
@@ -94,6 +95,18 @@ model QuizProgress {
   attempts Int       @default(0)
   passedAt DateTime?
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, slug])
+}
+
+model TaskProgress {
+  userId    String
+  slug      String
+  codes     Json?
+  fails     Int      @default(0)
+  done      Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, slug])
 }

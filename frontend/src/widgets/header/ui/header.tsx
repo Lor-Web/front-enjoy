@@ -74,6 +74,16 @@ export function Header({
             Курсы
           </NavLink>
           <NavLink
+            to={routes.tasks}
+            className={({ isActive }) =>
+              isActive
+                ? "bg-accent text-foreground rounded-md px-2 py-1"
+                : "text-muted-foreground hover:bg-accent/70 hover:text-foreground rounded-md px-2 py-1 transition-colors"
+            }
+          >
+            Задачи
+          </NavLink>
+          <NavLink
             to={routes.users}
             end
             className={({ isActive }) =>
