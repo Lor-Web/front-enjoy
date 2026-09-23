@@ -54,19 +54,28 @@ model CourseRepository {
   @@unique([userId, courseSlug])
 }
 
+enum HomeworkReviewStatus {
+  pending
+  accepted
+  rejected
+}
+
 model CourseHomeworkSubmission {
-  id          String   @id @default(cuid())
+  id          String                 @id @default(cuid())
   userId      String
   courseSlug  String
   moduleSlug  String
   prUrl       String
   mentorId    String?
-  submittedAt DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mentor      User?    @relation("HomeworkReviewer", fields: [mentorId], references: [id], onDelete: SetNull)
+  status      HomeworkReviewStatus   @default(pending)
+  submittedAt DateTime               @default(now())
+  reviewedAt  DateTime?
+  updatedAt   DateTime               @updatedAt
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mentor      User?                  @relation("HomeworkReviewer", fields: [mentorId], references: [id], onDelete: SetNull)
 
   @@unique([userId, courseSlug, moduleSlug])
+  @@index([mentorId, status])
 }
 
 model LessonRead {

@@ -1,6 +1,7 @@
 import { useAtomValue } from "jotai";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
+import { type CourseHomework, HomeworkChecksStatus } from "@/entities/course";
 import { useMyMentors } from "@/entities/mentorship";
 import { GitHubIcon } from "@/entities/user";
 import { tokenAtom, useMe } from "@/features/auth";
@@ -70,12 +71,14 @@ export function HomeworkPanel({
   useEffect(() => {
     if (submission?.prUrl) {
       setPrUrl(submission.prUrl);
-      onPass();
     }
     if (submission?.mentorId) {
       setMentorId(submission.mentorId);
     }
-  }, [onPass, submission?.mentorId, submission?.prUrl]);
+    if (submission?.status === "accepted") {
+      onPass();
+    }
+  }, [onPass, submission?.mentorId, submission?.prUrl, submission?.status]);
 
   useEffect(() => {
     if (!mentorId && activeMentors.length === 1 && activeMentors[0]) {
@@ -174,18 +177,14 @@ git checkout -b ${branch}`;
               );
               return;
             }
-            if (!mentorId) {
+            if (activeMentors.length > 0 && !mentorId) {
               toastError("Выберите ментора");
               return;
             }
-            submit.mutate(
-              { prUrl: value, mentorId },
-              {
-                onSuccess: () => {
-                  onPass();
-                },
-              },
-            );
+            submit.mutate({
+              prUrl: value,
+              mentorId: mentorId || undefined,
+            });
           }}
         >
           <label className="block text-sm font-medium" htmlFor="homework-pr">
@@ -201,62 +200,48 @@ git checkout -b ${branch}`;
           />
           {activeMentors.length === 0 ? (
             <p className="text-muted-foreground text-sm leading-6">
-              Сдать работу можно, когда есть хотя бы один активный ментор.{" "}
+              Активного ментора нет — работу примем, когда пройдут тесты на pull
+              request. Можно{" "}
               <Link
                 to={routes.mentors}
                 className="text-primary underline-offset-4 hover:underline"
               >
-                Найти ментора
+                найти ментора
               </Link>
+              .
             </p>
           ) : (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Select value={mentorId || undefined} onValueChange={setMentorId}>
-                <SelectTrigger
-                  className="sm:max-w-xs"
-                  aria-label="Ментор для сдачи"
-                >
-                  <SelectValue placeholder="Кому отправить" />
-                </SelectTrigger>
-                <SelectContent>
-                  {activeMentors.map((item) => (
-                    <SelectItem key={item.id} value={item.mentor.id}>
-                      {item.mentor.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                type="submit"
-                disabled={
-                  submit.isPending ||
-                  !prUrl.trim() ||
-                  !mentorId ||
-                  !looksLikePullUrl(prUrl.trim())
-                }
+            <Select value={mentorId || undefined} onValueChange={setMentorId}>
+              <SelectTrigger
+                className="sm:max-w-xs"
+                aria-label="Ментор для сдачи"
               >
-                {submission ? "Обновить сдачу" : "Сдать работу"}
-              </Button>
-            </div>
+                <SelectValue placeholder="Кому отправить" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeMentors.map((item) => (
+                  <SelectItem key={item.id} value={item.mentor.id}>
+                    {item.mentor.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
-          {activeMentors.length === 0 ? (
-            <Button type="submit" disabled>
-              Сдать работу
+          {submission?.status === "accepted" ? null : (
+            <Button
+              type="submit"
+              disabled={
+                submit.isPending ||
+                !prUrl.trim() ||
+                !looksLikePullUrl(prUrl.trim()) ||
+                (activeMentors.length > 0 && !mentorId)
+              }
+            >
+              {submission ? "Обновить сдачу" : "Сдать работу"}
             </Button>
-          ) : null}
-          {submission ? (
-            <p className="text-sm leading-6 text-emerald-800 dark:text-emerald-200/90">
-              Сдано{submission.mentorName ? ` · ${submission.mentorName}` : ""}:{" "}
-              <a
-                href={submission.prUrl}
-                className="underline-offset-4 hover:underline"
-                target="_blank"
-                rel="noreferrer"
-              >
-                {submission.prUrl}
-              </a>
-            </p>
-          ) : done ? (
+          )}
+          {submission ? <HomeworkStatus submission={submission} /> : null}
+          {!submission && done ? (
             <p className="text-muted-foreground text-sm">
               Раздел отмечен пройденным. Пришлите ссылку на PR, чтобы сдача
               сохранилась на сервере.
@@ -265,6 +250,90 @@ git checkout -b ${branch}`;
         </form>
       )}
     </section>
+  );
+}
+
+function HomeworkStatus({ submission }: { submission: CourseHomework }) {
+  return (
+    <div className="space-y-2 text-sm leading-6">
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <HomeworkChecksStatus checks={submission.checks} />
+        <a
+          href={submission.prUrl}
+          className="text-primary underline-offset-4 hover:underline"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {submission.prUrl}
+        </a>
+      </p>
+      {submission.status === "accepted" ? (
+        <p className="text-emerald-800 dark:text-emerald-200/90">
+          Домашняя работа принята
+          {submission.mentorName ? (
+            <>
+              {" · "}
+              <MentorName
+                name={submission.mentorName}
+                slug={submission.mentorSlug}
+              />
+            </>
+          ) : null}
+          .
+        </p>
+      ) : null}
+      {submission.status === "rejected" ? (
+        <p>
+          В работе есть ошибки, посмотрите комментарии в вашем PR
+          {submission.mentorName ? (
+            <>
+              {" · "}
+              <MentorName
+                name={submission.mentorName}
+                slug={submission.mentorSlug}
+              />
+            </>
+          ) : null}
+          .
+        </p>
+      ) : null}
+      {submission.status === "pending" && submission.mentorId ? (
+        <p>
+          Работа на проверке
+          {submission.mentorName ? (
+            <>
+              {" у "}
+              <MentorName
+                name={submission.mentorName}
+                slug={submission.mentorSlug}
+              />
+            </>
+          ) : null}
+          .
+        </p>
+      ) : null}
+      {submission.status === "pending" && !submission.mentorId ? (
+        <p className="text-muted-foreground">
+          {submission.checks === "success"
+            ? "Тесты пройдены, раздел сейчас откроется."
+            : "Без ментора работу примем, когда тесты на pull request станут зелёными."}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function MentorName({ name, slug }: { name: string; slug: string | null }) {
+  if (!slug) {
+    return name;
+  }
+  return (
+    <Link
+      to={routes.profile(slug)}
+      className="text-primary underline-offset-4 hover:underline"
+    >
+      {name}
+    </Link>
   );
 }
 

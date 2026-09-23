@@ -11,6 +11,13 @@ export function useCourseHomework(
   return useQuery({
     queryKey: ["course-homework", courseSlug, moduleSlug],
     enabled,
+    refetchInterval: (query) => {
+      const row = query.state.data;
+      if (!row || row.status !== "pending") {
+        return false;
+      }
+      return 8000;
+    },
     queryFn: async () => {
       try {
         return (await fetchCourseHomework(courseSlug, moduleSlug)) ?? null;
@@ -30,14 +37,18 @@ export function useSubmitCourseHomework(
 ) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { prUrl: string; mentorId: string }) =>
+    mutationFn: (payload: { prUrl: string; mentorId?: string }) =>
       submitCourseHomework(courseSlug, moduleSlug, payload),
     onSuccess: (row) => {
       queryClient.setQueryData(
         ["course-homework", courseSlug, moduleSlug],
         row,
       );
-      toastSuccess("Работа отправлена ментору");
+      toastSuccess(
+        row.mentorId
+          ? "Работа отправлена ментору"
+          : "Работа сдана. Ждём тесты на pull request",
+      );
     },
     onError: toastError,
   });

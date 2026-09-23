@@ -7,6 +7,7 @@ import { ContactLinks, type Mentorship } from "@/entities/user";
 import { tokenAtom } from "@/features/auth";
 import { RateUserForm } from "@/features/rate-user";
 import { useMentorshipAction } from "@/features/request-mentorship";
+import { HomeworkInbox } from "@/features/review-homework";
 import { routes } from "@/shared/config/routes";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
@@ -39,7 +40,7 @@ export function CabinetPage() {
         <div>
           <h1 className="mb-2 text-3xl sm:text-4xl">Кабинет</h1>
           <p className="text-muted-foreground text-[17px] leading-7">
-            Заявки, ученики и менторы. Контакты — в профиле.
+            Заявки, домашние работы, ученики и менторы. Контакты — в профиле.
           </p>
         </div>
 
@@ -82,6 +83,8 @@ export function CabinetPage() {
             <p className="text-muted-foreground text-sm">Пока пусто</p>
           )}
         </section>
+
+        <HomeworkInbox enabled={Boolean(token)} />
 
         <section>
           <h2 className="mb-1 text-xl">Мои ученики</h2>

@@ -20,7 +20,14 @@ export {
   sectionCount,
   sectionKey,
 } from "./lib/course-format";
-export { COURSES } from "./model/courses";
+export { COURSES, findCourse } from "./model/courses";
+export {
+  type CourseHomework,
+  checksLabel,
+  type HomeworkChecks,
+  type HomeworkStatus,
+  homeworkTitle,
+} from "./model/homework";
 export type {
   Course,
   CourseBlock,
@@ -36,3 +43,4 @@ export { COURSE_TECHS, PLATFORM_AUTHOR_ID } from "./model/types";
 export { useCourseProgress } from "./model/use-course-progress";
 export { CourseCard } from "./ui/course-card";
 export { CourseTechIcon } from "./ui/course-tech-icon";
+export { HomeworkChecksStatus } from "./ui/homework-checks";

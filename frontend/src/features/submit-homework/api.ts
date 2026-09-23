@@ -1,13 +1,7 @@
+import type { CourseHomework } from "@/entities/course";
 import { api } from "@/shared/lib/api";
 
-export type CourseHomework = {
-  courseSlug: string;
-  moduleSlug: string;
-  prUrl: string;
-  submittedAt: string;
-  mentorId: string | null;
-  mentorName: string | null;
-};
+export type { CourseHomework } from "@/entities/course";
 
 export async function fetchCourseHomework(
   courseSlug: string,
@@ -22,7 +16,7 @@ export async function fetchCourseHomework(
 export async function submitCourseHomework(
   courseSlug: string,
   moduleSlug: string,
-  payload: { prUrl: string; mentorId: string },
+  payload: { prUrl: string; mentorId?: string },
 ) {
   const { data } = await api.post<CourseHomework>(
     `/courses/${courseSlug}/modules/${moduleSlug}/homework`,

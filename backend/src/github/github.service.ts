@@ -16,6 +16,8 @@ type GithubRepo = {
   owner: { login: string };
 };
 
+export type HomeworkChecksState = "pending" | "success" | "failure" | "unknown";
+
 @Injectable()
 export class GithubService {
   constructor(private readonly config: ConfigService) {}
@@ -75,6 +77,50 @@ export class GithubService {
       token: this.orgToken(),
       missing: "null",
     });
+  }
+
+  async getPullChecks(
+    owner: string,
+    name: string,
+    number: string,
+  ): Promise<HomeworkChecksState> {
+    this.requireRepoCreate();
+    const pull = await this.request<{
+      head?: { sha?: string };
+    } | null>(`/repos/${owner}/${name}/pulls/${number}`, {
+      token: this.orgToken(),
+      missing: "null",
+    });
+    const sha = pull?.head?.sha;
+    if (!sha) {
+      return "unknown";
+    }
+    const payload = await this.request<{
+      check_runs?: Array<{
+        status?: string;
+        conclusion?: string | null;
+      }>;
+    } | null>(`/repos/${owner}/${name}/commits/${sha}/check-runs`, {
+      token: this.orgToken(),
+      missing: "null",
+    });
+    const runs = payload?.check_runs ?? [];
+    if (runs.length === 0) {
+      return "pending";
+    }
+    if (
+      runs.some((run) =>
+        ["failure", "timed_out", "cancelled", "startup_failure"].includes(
+          run.conclusion ?? "",
+        ),
+      )
+    ) {
+      return "failure";
+    }
+    if (runs.some((run) => run.status !== "completed")) {
+      return "pending";
+    }
+    return "success";
   }
 
   async inviteCollaborator(input: {

@@ -4,10 +4,13 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { MentorshipStatus } from "@prisma/client";
-import { GithubService } from "../github/github.service";
+import { HomeworkReviewStatus, MentorshipStatus } from "@prisma/client";
+import {
+  GithubService,
+  type HomeworkChecksState,
+} from "../github/github.service";
 import { PrismaService } from "../prisma/prisma.service";
-import { normalizeHomeworkPullUrl } from "./pull-url";
+import { normalizeHomeworkPullUrl, parseHomeworkPullUrl } from "./pull-url";
 import { homeworkRepoName } from "./templates";
 
 @Injectable()
@@ -98,12 +101,15 @@ export class CoursesService {
       where: {
         userId_courseSlug_moduleSlug: { userId, courseSlug, moduleSlug },
       },
-      include: { mentor: { select: { id: true, name: true } } },
+      include: {
+        mentor: { select: { id: true, name: true, slug: true } },
+        user: { select: { id: true, name: true, slug: true } },
+      },
     });
     if (!row) {
       return null;
     }
-    return this.serializeHomework(row);
+    return this.presentHomework(row);
   }
 
   async submitHomework(
@@ -111,7 +117,7 @@ export class CoursesService {
     courseSlug: string,
     moduleSlug: string,
     prUrl: string,
-    mentorId: string,
+    mentorId?: string,
   ) {
     this.requireTemplate(courseSlug);
     this.requireModuleSlug(moduleSlug);
@@ -120,17 +126,20 @@ export class CoursesService {
       throw new ConflictException("Сначала создайте репозиторий курса");
     }
 
-    const mentorship = await this.prisma.mentorship.findFirst({
-      where: {
-        studentId: userId,
-        mentorId,
-        status: MentorshipStatus.active,
-      },
-    });
-    if (!mentorship) {
-      throw new ConflictException(
-        "Сдать работу можно только активному ментору",
-      );
+    const reviewerId = mentorId?.trim() || null;
+    if (reviewerId) {
+      const mentorship = await this.prisma.mentorship.findFirst({
+        where: {
+          studentId: userId,
+          mentorId: reviewerId,
+          status: MentorshipStatus.active,
+        },
+      });
+      if (!mentorship) {
+        throw new ConflictException(
+          "Сдать работу можно только активному ментору",
+        );
+      }
     }
 
     const normalized = normalizeHomeworkPullUrl(prUrl, {
@@ -147,16 +156,80 @@ export class CoursesService {
         courseSlug,
         moduleSlug,
         prUrl: normalized,
-        mentorId,
+        mentorId: reviewerId,
+        status: HomeworkReviewStatus.pending,
       },
       update: {
         prUrl: normalized,
-        mentorId,
+        mentorId: reviewerId,
+        status: HomeworkReviewStatus.pending,
         submittedAt: new Date(),
+        reviewedAt: null,
       },
-      include: { mentor: { select: { id: true, name: true } } },
+      include: {
+        mentor: { select: { id: true, name: true, slug: true } },
+        user: { select: { id: true, name: true, slug: true } },
+      },
     });
-    return this.serializeHomework(row);
+    return this.presentHomework(row);
+  }
+
+  async listInbox(mentorId: string) {
+    const rows = await this.prisma.courseHomeworkSubmission.findMany({
+      where: {
+        mentorId,
+        status: HomeworkReviewStatus.pending,
+      },
+      include: {
+        mentor: { select: { id: true, name: true, slug: true } },
+        user: { select: { id: true, name: true, slug: true } },
+      },
+      orderBy: { submittedAt: "desc" },
+    });
+    return Promise.all(rows.map((row) => this.presentHomework(row)));
+  }
+
+  async reviewHomework(
+    mentorId: string,
+    submissionId: string,
+    decision: "accepted" | "rejected",
+  ) {
+    const row = await this.prisma.courseHomeworkSubmission.findUnique({
+      where: { id: submissionId },
+      include: {
+        mentor: { select: { id: true, name: true, slug: true } },
+        user: { select: { id: true, name: true, slug: true } },
+      },
+    });
+    if (!row || row.mentorId !== mentorId) {
+      throw new NotFoundException("Сдача не найдена");
+    }
+    if (row.status !== HomeworkReviewStatus.pending) {
+      throw new ConflictException("Эту работу уже проверили");
+    }
+
+    const presented = await this.presentHomework(row);
+    if (decision === "accepted" && presented.checks !== "success") {
+      throw new ConflictException(
+        "Принять можно, когда тесты на pull request зелёные",
+      );
+    }
+
+    const updated = await this.prisma.courseHomeworkSubmission.update({
+      where: { id: row.id },
+      data: {
+        status:
+          decision === "accepted"
+            ? HomeworkReviewStatus.accepted
+            : HomeworkReviewStatus.rejected,
+        reviewedAt: new Date(),
+      },
+      include: {
+        mentor: { select: { id: true, name: true, slug: true } },
+        user: { select: { id: true, name: true, slug: true } },
+      },
+    });
+    return this.presentHomework(updated, presented.checks);
   }
 
   private async liveRepository(userId: string, courseSlug: string) {
@@ -211,21 +284,88 @@ export class CoursesService {
     };
   }
 
-  private serializeHomework(row: {
-    courseSlug: string;
-    moduleSlug: string;
-    prUrl: string;
-    submittedAt: Date;
-    mentorId: string | null;
-    mentor: { id: string; name: string } | null;
-  }) {
+  private async presentHomework(
+    row: {
+      id: string;
+      userId: string;
+      courseSlug: string;
+      moduleSlug: string;
+      prUrl: string;
+      submittedAt: Date;
+      reviewedAt: Date | null;
+      status: HomeworkReviewStatus;
+      mentorId: string | null;
+      mentor: { id: string; name: string; slug: string } | null;
+      user: { id: string; name: string; slug: string };
+    },
+    knownChecks?: HomeworkChecksState,
+  ) {
+    const checks = knownChecks ?? (await this.checksFor(row.prUrl));
+    let current = row;
+    if (
+      !row.mentorId &&
+      row.status === HomeworkReviewStatus.pending &&
+      checks === "success"
+    ) {
+      current = await this.prisma.courseHomeworkSubmission.update({
+        where: { id: row.id },
+        data: {
+          status: HomeworkReviewStatus.accepted,
+          reviewedAt: new Date(),
+        },
+        include: {
+          mentor: { select: { id: true, name: true, slug: true } },
+          user: { select: { id: true, name: true, slug: true } },
+        },
+      });
+    }
+    return this.serializeHomework(current, checks);
+  }
+
+  private async checksFor(prUrl: string): Promise<HomeworkChecksState> {
+    const parsed = parseHomeworkPullUrl(prUrl);
+    if (!parsed) {
+      return "unknown";
+    }
+    try {
+      return await this.github.getPullChecks(
+        parsed.owner,
+        parsed.name,
+        parsed.number,
+      );
+    } catch {
+      return "unknown";
+    }
+  }
+
+  private serializeHomework(
+    row: {
+      id: string;
+      courseSlug: string;
+      moduleSlug: string;
+      prUrl: string;
+      submittedAt: Date;
+      reviewedAt: Date | null;
+      status: HomeworkReviewStatus;
+      mentorId: string | null;
+      mentor: { id: string; name: string; slug: string } | null;
+      user: { id: string; name: string; slug: string };
+    },
+    checks: HomeworkChecksState,
+  ) {
     return {
+      id: row.id,
       courseSlug: row.courseSlug,
       moduleSlug: row.moduleSlug,
       prUrl: row.prUrl,
       submittedAt: row.submittedAt.toISOString(),
+      reviewedAt: row.reviewedAt?.toISOString() ?? null,
+      status: row.status,
+      checks,
       mentorId: row.mentorId,
       mentorName: row.mentor?.name ?? null,
+      mentorSlug: row.mentor?.slug ?? null,
+      student: row.user,
     };
   }
 }
