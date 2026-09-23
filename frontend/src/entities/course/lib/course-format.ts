@@ -186,6 +186,8 @@ export function estimateCourseSectionMinutes(section: CourseSection) {
       codeBlocks += 1;
     } else if (block.type === "ul") {
       chunks.push(...block.items);
+    } else if (block.type === "table") {
+      chunks.push(...block.headers, ...block.rows.flat());
     } else {
       chunks.push(block.text);
     }

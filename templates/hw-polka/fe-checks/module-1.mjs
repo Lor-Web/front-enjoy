@@ -39,7 +39,7 @@ function hasSrc(name) {
 const pkgText = read("package.json");
 if (!pkgText) {
   fail(
-    "В корне нет package.json. Создайте Vite-приложение в корне репозитория: npm create vite@latest . -- --template react",
+    "В корне нет package.json. Он уже должен быть в репозитории курса. Не запускайте create vite заново — снесёт проверки.",
   );
 } else {
   let pkg = null;

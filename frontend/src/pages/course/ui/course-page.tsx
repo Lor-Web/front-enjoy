@@ -121,8 +121,8 @@ export function CoursePage() {
             <section className="mt-10">
               <h2 className="mb-1 text-xl font-semibold">Программа</h2>
               <p className="text-muted-foreground mb-4 text-sm">
-                Урок открывается после предыдущего. Модуль — после предыдущего
-                модуля. В конце урока может быть квиз, задача или ничего.
+                Раздел открывается после предыдущего. Модуль — после предыдущего
+                модуля. Домашняя работа — в последнем разделе модуля.
               </p>
               <div className="divide-y rounded-md border">
                 {course.modules.map((module) => {

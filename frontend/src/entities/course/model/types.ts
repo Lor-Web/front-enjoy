@@ -38,7 +38,9 @@ export type CourseBlock =
   | { type: "p"; text: string }
   | { type: "h2"; text: string }
   | { type: "ul"; items: string[] }
-  | { type: "code"; lang?: string; text: string };
+  | { type: "code"; lang?: string; text: string }
+  | { type: "note"; title?: string; text: string }
+  | { type: "table"; headers: string[]; rows: string[][] };
 
 export type CourseSection = {
   slug: string;

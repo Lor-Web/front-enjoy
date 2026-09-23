@@ -233,6 +233,9 @@ function blockKey(block: CourseBlock) {
   if (block.type === "code") {
     return `code:${block.text.slice(0, 48)}`;
   }
+  if (block.type === "table") {
+    return `table:${block.headers.join("|")}`;
+  }
   return `${block.type}:${block.text.slice(0, 48)}`;
 }
 
@@ -260,6 +263,52 @@ function CourseBlockView({ block }: { block: CourseBlock }) {
       <CodeBlock data-language={block.lang}>
         <code>{block.text}</code>
       </CodeBlock>
+    );
+  }
+  if (block.type === "note") {
+    return (
+      <aside className="border-border bg-muted/40 mb-4 rounded-xl border px-4 py-3">
+        {block.title ? (
+          <p className="mb-1 text-sm font-medium">{block.title}</p>
+        ) : null}
+        <p className="text-[17px] leading-7">
+          <InlineMarkup text={block.text} />
+        </p>
+      </aside>
+    );
+  }
+  if (block.type === "table") {
+    return (
+      <div className="mb-4 overflow-x-auto">
+        <table className="min-w-md w-full border-collapse text-left text-sm leading-6">
+          <thead>
+            <tr>
+              {block.headers.map((header) => (
+                <th
+                  key={header}
+                  className="border-border border-b px-3 py-2 font-medium"
+                >
+                  <InlineMarkup text={header} />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {block.rows.map((row) => (
+              <tr key={row.join("|")}>
+                {row.map((cell, cellIndex) => (
+                  <td
+                    key={`${block.headers[cellIndex] ?? "col"}:${cell}`}
+                    className="border-border border-b px-3 py-2 align-top"
+                  >
+                    <InlineMarkup text={cell} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     );
   }
   return (

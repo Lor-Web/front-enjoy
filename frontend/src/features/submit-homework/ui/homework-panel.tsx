@@ -96,7 +96,7 @@ export function HomeworkPanel({
       <section className="mb-10 rounded-xl border px-4 py-4">
         <h2 className="text-lg font-medium">Репозиторий задания</h2>
         <p className="text-muted-foreground mt-2 text-sm leading-6">
-          Сначала привяжите GitHub к профилю. Платформа создаст вам приватный
+          Сначала привяжите GitHub к профилю. Платформа создаст вам публичный
           репозиторий по шаблону курса и добавит вас с правом пуша.
         </p>
         <Button
@@ -118,7 +118,7 @@ export function HomeworkPanel({
         <h2 className="text-lg font-medium">Репозиторий задания</h2>
         <p className="text-muted-foreground mt-2 text-sm leading-6">
           <InlineMarkup
-            text={`GitHub подключён как ${me.githubLogin}. Создайте репозиторий — в нём будете работать в ветке \`${branch}\` и откроете pull request в \`main\`.`}
+            text={`GitHub подключён как ${me.githubLogin}. Создайте публичный репозиторий — в нём будете работать в ветке \`${branch}\` и откроете pull request в \`main\`.`}
           />
         </p>
         <Button

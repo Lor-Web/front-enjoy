@@ -62,7 +62,7 @@ export class GithubService {
           owner,
           name: input.name,
           description: input.description,
-          private: true,
+          private: false,
           include_all_branches: false,
         },
       },
