@@ -79,12 +79,19 @@ export function flattenSections(course: Course) {
 export function unlockedHomeworkModules(
   course: Course,
   completed: ReadonlySet<string>,
+  preview = false,
 ) {
   return flattenSections(course)
     .filter(
       ({ module, section }) =>
         section.work?.type === "homework" &&
-        isSectionUnlocked(course, module.slug, section.slug, completed),
+        isSectionUnlocked(
+          course,
+          module.slug,
+          section.slug,
+          completed,
+          preview,
+        ),
     )
     .map(({ module }) => module.slug);
 }
@@ -97,7 +104,11 @@ export function isModuleUnlocked(
   course: Course,
   moduleSlug: string,
   completed: ReadonlySet<string>,
+  preview = false,
 ) {
+  if (preview) {
+    return true;
+  }
   const index = course.modules.findIndex(
     (module) => module.slug === moduleSlug,
   );
@@ -118,7 +129,11 @@ export function isSectionUnlocked(
   moduleSlug: string,
   sectionSlug: string,
   completed: ReadonlySet<string>,
+  preview = false,
 ) {
+  if (preview) {
+    return true;
+  }
   if (!isModuleUnlocked(course, moduleSlug, completed)) {
     return false;
   }
@@ -144,12 +159,18 @@ export function firstSection(course: Course) {
 export function nextIncompleteSection(
   course: Course,
   completed: ReadonlySet<string>,
+  preview = false,
 ) {
   return (
     flattenSections(course).find(
       ({ module, section }) =>
-        isSectionUnlocked(course, module.slug, section.slug, completed) &&
-        !completed.has(sectionKey(module.slug, section.slug)),
+        isSectionUnlocked(
+          course,
+          module.slug,
+          section.slug,
+          completed,
+          preview,
+        ) && !completed.has(sectionKey(module.slug, section.slug)),
     ) ?? null
   );
 }

@@ -20,7 +20,7 @@ import {
   useCourseProgress,
 } from "@/entities/course";
 import { gradeLabel } from "@/entities/user";
-import { tokenAtom } from "@/features/auth";
+import { tokenAtom, useMe } from "@/features/auth";
 import { useEnsureHomeworkChecks } from "@/features/submit-homework";
 import { routes } from "@/shared/config/routes";
 import { Badge } from "@/shared/ui/badge";
@@ -31,6 +31,8 @@ import { AppShell } from "@/widgets/app-shell";
 export function CoursePage() {
   const { slug = "" } = useParams();
   const token = useAtomValue(tokenAtom);
+  const { data: me } = useMe();
+  const preview = Boolean(me?.staff);
   const { data: course, isPending, isError } = useCourse(slug);
   const {
     completed,
@@ -38,7 +40,7 @@ export function CoursePage() {
     started,
     isPending: progressPending,
   } = useCourseProgress(slug);
-  useEnsureHomeworkChecks(course, completed);
+  useEnsureHomeworkChecks(course, completed, preview);
 
   if (isPending) {
     return (
@@ -140,6 +142,7 @@ export function CoursePage() {
                       course,
                       module.slug,
                       completed,
+                      preview,
                     );
                     return (
                       <details
@@ -174,6 +177,7 @@ export function CoursePage() {
                                 module.slug,
                                 section.slug,
                                 completed,
+                                preview,
                               );
                               const done = isDone(module.slug, section.slug);
                               const row = (
@@ -190,7 +194,7 @@ export function CoursePage() {
                               );
                               return (
                                 <li key={section.slug}>
-                                  {open && started && token ? (
+                                  {open && token && (started || preview) ? (
                                     <Link
                                       to={routes.courseSection(
                                         course.slug,
@@ -258,11 +262,13 @@ function StartCard({
 }) {
   const token = useAtomValue(tokenAtom);
   const navigate = useNavigate();
+  const { data: me } = useMe();
+  const preview = Boolean(me?.staff);
   const { completed, started, start, isPending } = useCourseProgress(
     course.slug,
   );
   const first = firstSection(course);
-  const next = nextIncompleteSection(course, completed);
+  const next = nextIncompleteSection(course, completed, preview);
   const total = sectionCount(course);
   const done = completedCount(course, completed);
   const firstHref = first

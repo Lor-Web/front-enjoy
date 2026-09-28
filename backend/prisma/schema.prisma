@@ -26,6 +26,7 @@ model User {
   githubId       String?   @unique
   githubLogin    String?
   githubLinkedAt DateTime?
+  staff          Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

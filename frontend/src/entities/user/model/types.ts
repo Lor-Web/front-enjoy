@@ -76,6 +76,7 @@ export type MeProfile = PublicProfile & {
   email: string;
   visibility: ProfileVisibility;
   githubLogin: string | null;
+  staff: boolean;
 };
 
 export type MentorshipStatus = "pending" | "active" | "declined" | "ended";

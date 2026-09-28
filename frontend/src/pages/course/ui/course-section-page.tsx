@@ -14,6 +14,7 @@ import {
   useCourse,
   useCourseProgress,
 } from "@/entities/course";
+import { useMe } from "@/features/auth";
 import {
   HomeworkPanel,
   useEnsureHomeworkChecks,
@@ -32,6 +33,8 @@ import { CourseSidebar } from "@/widgets/course-sidebar";
 export function CourseSectionPage() {
   const { slug = "", moduleSlug = "", sectionSlug = "" } = useParams();
   const { data: course, isPending, isError } = useCourse(slug);
+  const { data: me } = useMe();
+  const preview = Boolean(me?.staff);
   const {
     completed,
     started,
@@ -42,7 +45,7 @@ export function CourseSectionPage() {
     isPending: progressPending,
     isError: progressError,
   } = useCourseProgress(slug);
-  useEnsureHomeworkChecks(course, completed);
+  useEnsureHomeworkChecks(course, completed, preview);
 
   useEffect(() => {
     if (course && !progressPending && !started) {
@@ -98,7 +101,12 @@ export function CourseSectionPage() {
   }
 
   const sidebar = (
-    <CourseSidebar course={course} completed={completed} started={started} />
+    <CourseSidebar
+      course={course}
+      completed={completed}
+      started={started}
+      preview={preview}
+    />
   );
 
   if (!module || !section) {
@@ -117,6 +125,7 @@ export function CourseSectionPage() {
     module.slug,
     section.slug,
     completed,
+    preview,
   );
   if (!unlocked) {
     return <Navigate to={routes.course(course.slug)} replace />;
@@ -131,6 +140,7 @@ export function CourseSectionPage() {
       neighbors.next.module.slug,
       neighbors.next.section.slug,
       new Set([...completed, `${module.slug}/${section.slug}`]),
+      preview,
     );
 
   return (

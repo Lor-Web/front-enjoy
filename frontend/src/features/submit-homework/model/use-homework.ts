@@ -15,6 +15,7 @@ import {
 export function useEnsureHomeworkChecks(
   course: Course | undefined,
   completed: ReadonlySet<string>,
+  preview = false,
 ) {
   const token = useAtomValue(tokenAtom);
   const signedIn = Boolean(token);
@@ -27,8 +28,8 @@ export function useEnsureHomeworkChecks(
       return [];
     }
     const done = new Set(completedKey ? completedKey.split("\0") : []);
-    return unlockedHomeworkModules(course, done);
-  }, [course, completedKey]);
+    return unlockedHomeworkModules(course, done, preview);
+  }, [course, completedKey, preview]);
 
   useEffect(() => {
     if (!course || !repo) {

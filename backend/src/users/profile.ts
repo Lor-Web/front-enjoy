@@ -37,6 +37,7 @@ export type MeProfile = PublicProfile & {
   email: string;
   visibility: ProfileVisibility;
   githubLogin: string | null;
+  staff: boolean;
 };
 
 export type ProfileUser = Pick<
@@ -145,7 +146,7 @@ export async function toPublicProfile(
 
 export async function toMeProfile(
   prisma: PrismaService,
-  user: ProfileUser & { githubLogin: string | null },
+  user: ProfileUser & { githubLogin: string | null; staff: boolean },
 ): Promise<MeProfile> {
   const profile = await toPublicProfile(prisma, user, "owner");
   return {
@@ -153,5 +154,6 @@ export async function toMeProfile(
     email: user.email,
     visibility: parseVisibility(user.visibility),
     githubLogin: user.githubLogin,
+    staff: user.staff,
   };
 }

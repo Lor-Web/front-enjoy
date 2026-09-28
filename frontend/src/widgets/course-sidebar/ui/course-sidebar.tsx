@@ -17,10 +17,12 @@ export function CourseSidebar({
   course,
   completed,
   started,
+  preview = false,
 }: {
   course: Course;
   completed: ReadonlySet<string>;
   started: boolean;
+  preview?: boolean;
 }) {
   const total = sectionCount(course);
   const done = completedCount(course, completed);
@@ -59,6 +61,7 @@ export function CourseSidebar({
                     module.slug,
                     section.slug,
                     completed,
+                    preview,
                   );
                   const passed = completed.has(
                     sectionKey(module.slug, section.slug),
